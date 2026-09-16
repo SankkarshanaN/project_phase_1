@@ -1,5 +1,9 @@
-"""Phase 2 orchestrator: runs all 4 scenarios end-to-end to build the pilot
-dataset (~1,000-1,500 frames, split roughly evenly across A/B/C/D).
+"""Phase 2 orchestrator: runs all 5 scenarios end-to-end to build the dataset
+(15,000 frames by default; use --pilot for a small ~300-frame gated run
+first). Scenario E, the roaming ego, gets the largest share (see
+CLEAR_SPLIT below) since it is the only one that supplies real scene
+diversity; A/B/C are staged vignettes and D (adverse weather) is normally
+skipped -- see scenarios/scenario_d_adverse_weather.py for why.
 
 CARLA 0.10.0 only ships Town10HD_Opt, so all scenarios (including D's weather
 variants) share a single connection -- no town reloads needed, which also

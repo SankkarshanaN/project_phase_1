@@ -377,7 +377,10 @@ def spawn_multi_occlusion_scenario(client, world, seed: int,
     world.tick()   # commit ego/occluder transforms before reading them; see Scenario A
 
     right = occluder_wp.transform.get_right_vector()
-    speed = sc["crossing_actor_speed_ms"]
+    # NOTE: `sc["crossing_actor_speed_ms"]` (config) is no longer read here --
+    # walker speed comes entirely from `sample_behaviour`'s own per-episode
+    # sampling below, a leftover from before the walker_behavior.py rework
+    # when a single fixed speed drove every walker for the whole episode.
 
     hidden_bp_name = rng.choice(sc["hidden_actor_blueprint_pool"])
     hidden_walker = _spawn_walker_in_shadow(

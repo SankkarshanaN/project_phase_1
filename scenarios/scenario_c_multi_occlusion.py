@@ -45,7 +45,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=3)
     parser.add_argument("--max-steps", type=int, default=120)
-    parser.add_argument("--out-dir", default="data/raw")
+    parser.add_argument("--out-dir", default="data/raw_v2")
     args = parser.parse_args()
 
     town_cfg = load_yaml("town.yaml")

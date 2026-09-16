@@ -1,12 +1,14 @@
-"""Scenario B -- Blind-Spot Vehicle Cut-In (Town04, straight highway segment).
+"""Scenario B -- Blind-Spot Vehicle Cut-In (Town10HD_Opt -- CARLA 0.10.0 ships
+no other town, so this runs on ordinary city streets, not a highway).
 
-Ego cruises at a fixed 60 km/h; a second vehicle spawns in the rear-lateral
-blind spot (adjacent lane, behind) at 70 km/h and merges into the ego's lane
-once it closes to the configured trigger distance -- producing a track with
-zero prior camera history at the moment of the cut-in. Both vehicles are
-driven kinematically (see carla_tools.scenario_gen.step_blindspot) rather
-than via autopilot/Traffic Manager, which proved unreliable for holding a
-precise speed on this Town04 stretch.
+Ego cruises at a fixed 35 km/h (Town10's streets are tighter than a highway,
+so the originally-planned 60 was reduced -- see configs/scenarios.yaml); a
+second vehicle spawns in the rear-lateral blind spot (adjacent lane, behind,
+6 m back) at 60 km/h and merges into the ego's lane once it closes to the
+configured trigger distance -- producing a track with zero prior camera
+history at the moment of the cut-in. Both vehicles are driven kinematically
+(see carla_tools.scenario_gen.step_blindspot) rather than via autopilot/
+Traffic Manager, which proved unreliable for holding a precise speed.
 
 Standalone run: starts its own connection, runs a few episodes, and exits.
 Also used as a library by scripts/collect_dataset.py.
@@ -44,7 +46,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=3)
     parser.add_argument("--max-steps", type=int, default=150)
-    parser.add_argument("--out-dir", default="data/raw")
+    parser.add_argument("--out-dir", default="data/raw_v2")
     args = parser.parse_args()
 
     town_cfg = load_yaml("town.yaml")
