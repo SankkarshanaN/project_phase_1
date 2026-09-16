@@ -58,11 +58,21 @@ from scripts.evaluate_prediction import _episode_key, _match_tracks_to_truth, bu
 # all 317 of its recorded observations.
 NEAR_FORWARD_M, NEAR_LATERAL_M = 40.0, 15.0
 
-# Hand-verified near-miss: a smooth rise 0.18 -> 0.38 as the walker approaches
-# the corridor edge, then a smooth fall back to 0.00 as they veer off, never
-# entering. No discontinuities, no ID-switch artifacts -- see the module
-# docstring for why this was not picked automatically.
-DEFAULT_NEAR_MISS = ("urban_crossing_clear_day_ep67000", 27)
+# Hand-verified near-miss, from the 2026-09-16 collection (seed-base 100000):
+# a smooth, monotonic rise 0.00 -> 0.34 over ~1.5s as the walker approaches,
+# ending because they go back behind an occluder (tier drops to OCCLUDED on
+# the last observed frame) rather than crossing. No discontinuities, no
+# ID-switch artifacts.
+#
+# THIS IS PINNED TO ONE COLLECTION'S SEED RANGE AND WILL NOT SURVIVE A FRESH
+# ONE. It silently produced a blank panel, no error, the first time the
+# dataset was recollected with a different --seed-base -- main() now guards
+# against that specific failure, but the fix is still to re-verify and update
+# this constant after any recollection. See the module docstring for the
+# manual verification process (pick_crosser now does this automatically for
+# the crosser; the near-miss search still needs eyeballing for a clean,
+# artifact-free trace before trusting it).
+DEFAULT_NEAR_MISS = ("urban_crossing_clear_day_ep103001", 73)
 
 
 def _load_reachable_actors(data_dir: Path):
@@ -80,20 +90,36 @@ def _load_reachable_actors(data_dir: Path):
     return by_actor, reachable
 
 
-def pick_crosser(by_actor, reachable, min_len=25):
-    """Longest-observed reachable actor whose `will_cross` is True somewhere
-    in its history -- see the module docstring for why "somewhere," not
-    "at the final frame": once someone HAS entered the corridor, later
-    frames are labelled False (no longer "about to"), so no actor's final
-    label is ever True."""
-    best_key, best_n = None, 0
-    for key, rows in by_actor.items():
-        if key not in reachable or len(rows) < min_len:
+def pick_crosser(by_actor, reachable, by_ep, cam_cfg, dt, min_len=25, top_k=15):
+    """The reachable actor whose `will_cross` is True somewhere in its
+    history (see the module docstring for why "somewhere," not "at the
+    final frame") that the tracker ACTUALLY follows well.
+
+    Picking by raw retrospective-label count alone is not enough and produces
+    a misleading figure: label count measures how many frames a ground-truth
+    row exists for, not how many the TRACKER successfully follows (detection,
+    association, and confirmation can all fail independently of whether a
+    label exists). Found by inspection -- the longest-labelled candidate in
+    one run had 339 label rows but only 7 successfully tracked frames and
+    never showed a visible corridor entry, while a candidate ranked 8th by
+    label count had 68 tracked frames and 37 of them genuinely inside the
+    corridor. So: shortlist by label count (cheap), then actually replay the
+    top `top_k` and score by tracked-frame count, preferring one that shows
+    real corridor entry.
+    """
+    shortlist = [key for key, rows in by_actor.items()
+                 if key in reachable and len(rows) >= min_len and any(v for _, v in rows)]
+    shortlist.sort(key=lambda k: -len(by_actor[k]))
+
+    best_key, best_score = None, (-1, -1)
+    for key in shortlist[:top_k]:
+        ep, aid = key
+        t, pc, pcc, tiers, corridor = trace_episode(by_ep, cam_cfg, dt, ep, aid)
+        if len(t) == 0:
             continue
-        if not any(v for _, v in rows):
-            continue
-        if len(rows) > best_n:
-            best_key, best_n = key, len(rows)
+        score = (int(corridor.sum() > 0), len(t))   # real corridor entry first, then length
+        if score > best_score:
+            best_key, best_score = key, score
     return best_key
 
 
@@ -147,12 +173,20 @@ def main():
     for p in sorted((data_dir / "meta").glob("*.npz")):
         by_ep[_episode_key(p)].append(p)
 
-    crosser_key = pick_crosser(by_actor, reachable)
+    crosser_key = pick_crosser(by_actor, reachable, by_ep, cam_cfg, dt)
     near_miss_key = (args.near_miss_episode, args.near_miss_actor)
     print(f"crossing example:  {crosser_key}")
     print(f"near-miss example: {near_miss_key}")
     if crosser_key is None:
         raise SystemExit("No reachable actor with a positive will_cross label found.")
+    if near_miss_key[0] not in by_ep:
+        raise SystemExit(
+            f"--near-miss-episode {near_miss_key[0]!r} not found in {data_dir}. "
+            f"DEFAULT_NEAR_MISS is a hand-verified episode ID pinned to a specific "
+            f"collection's seed range -- it does not carry over to a fresh collection "
+            f"with a different --seed-base. Re-run the near-miss search (see the "
+            f"module docstring) against this dataset and update DEFAULT_NEAR_MISS, "
+            f"or pass --near-miss-episode/--near-miss-actor explicitly.")
 
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 3.6), sharey=True)
     for ax, key, title in ((axes[0], crosser_key, "A genuine crossing"),
