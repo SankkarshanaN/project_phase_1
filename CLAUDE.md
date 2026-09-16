@@ -467,7 +467,8 @@ Two components are load-bearing in ways that aren't obvious from their names:
 - **`contradiction.py` conditions its likelihoods on occlusion state.** That is the
   whole point. "Camera sees nothing" in an EMPTY cell is strong evidence of a clear
   road; the same silence in an OCCLUDED cell is almost no evidence at all. Measured:
-  P(hazard) 0.011 vs 0.152 for identical sensor readings. Fixed-weight fusion cannot
+  P(hazard) 0.009 vs 0.152 for identical sensor readings (`results/framework_metrics.json`,
+  `contradiction.neither_visible` / `.neither_occluded`). Fixed-weight fusion cannot
   make that distinction.
 - **`particle_tracker.py` is not interchangeable with the EKF.** Behind an occluder
   the distribution is genuinely multi-modal — emerge at the front, emerge at the rear,
