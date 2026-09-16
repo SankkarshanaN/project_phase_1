@@ -58,7 +58,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from carla_tools.occlusion_tiers import OCCLUDED as TIER_OCCLUDED
 from common.config import load_yaml
 from perception.contradiction import SensorEvidence, resolve
 from perception.geometry import (
@@ -246,6 +245,15 @@ class PerceptionPipeline:
         out = []
         for tid, pf in list(self.hidden.items()):
             pf.predict(dt, ego_speed=ego_speed, ego_yaw_rate=ego_yaw_rate)
+            # Deliberately NOT `detections_xy` here, despite this method
+            # receiving that exact list -- `det_xy` is every detection in the
+            # frame, any class, anywhere, not ones near this particular hidden
+            # hazard. Feeding it into per-frame reweighting would let an
+            # unrelated pedestrian or car pull the belief toward itself on
+            # every single frame. Reidentification (below) is the one place
+            # detections_xy is used against a hidden hazard: a deliberate,
+            # high-bar, one-shot decision (>= REID_THRESHOLD mass, then
+            # revive-and-retire) rather than continuous soft contamination.
             pf.update_from_occlusion(grid, self.grid_cfg, detections_xy=None)
 
             # Re-identification: has this hazard reappeared?
@@ -291,6 +299,10 @@ class PerceptionPipeline:
         # (radar range, camera-size range) pairs, for the health monitor's
         # cross-sensor calibration check. See sensor_health._radar_health.
         range_pairs = []
+        # Health does not change mid-loop -- self.health.update() runs once,
+        # after every detection has been processed -- so this is computed
+        # once rather than once per detection.
+        report = self.health.report()
 
         for box, cls, conf, unc in dets:
             az_lo, az_hi = pixel_range_to_azimuth_range(box[0], box[2], img_w, fov)
@@ -333,7 +345,6 @@ class PerceptionPipeline:
 
             # [5] contradiction resolution, conditioned on occlusion state and
             # current sensor health.
-            report = self.health.report()
             res = resolve(SensorEvidence(
                 camera_detected=True, camera_confidence=conf, camera_uncertainty=unc,
                 radar_detected=hits.shape[0] > 0, radar_confidence=r_conf,
