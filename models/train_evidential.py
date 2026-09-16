@@ -178,7 +178,7 @@ class AugmentedCrops(Dataset):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", default="data/raw")
+    parser.add_argument("--data-dir", default="data/raw_v2")
     parser.add_argument("--epochs", type=int, default=15)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -190,6 +190,16 @@ def main():
     print(f"Using device: {device}")
 
     dataset = CropDataset(args.data_dir)
+    if len(dataset) == 0:
+        # A wrong or stale --data-dir doesn't raise here -- glob() over a
+        # missing directory just yields nothing -- and used to surface many
+        # steps downstream as an opaque `ValueError: num_samples should be a
+        # positive integer value, but got num_samples=0` from inside
+        # DataLoader, with no hint that the real problem was upstream.
+        raise SystemExit(
+            f"No crops found under {args.data_dir!r} (expected {args.data_dir}/images "
+            f"and {args.data_dir}/labels). Pass --data-dir data/raw_v2 or wherever "
+            f"the dataset actually lives.")
     print(f"Loaded {len(dataset)} crops "
           f"(vehicle={sum(1 for s in dataset.samples if s[5] == CLASS_VEHICLE)}, "
           f"pedestrian={sum(1 for s in dataset.samples if s[5] == CLASS_PEDESTRIAN)}, "

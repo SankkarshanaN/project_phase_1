@@ -22,16 +22,25 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--frame-name", required=True,
                          help="Basename (no extension) shared by images/, labels/, meta/")
-    parser.add_argument("--data-dir", default="data/raw")
+    parser.add_argument("--data-dir", default="data/raw_v2")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
     bev_cfg = load_yaml("bev.yaml")
 
-    img_bgr = cv2.imread(str(data_dir / "images" / f"{args.frame_name}.jpg"))
+    img_path = data_dir / "images" / f"{args.frame_name}.jpg"
+    meta_path = data_dir / "meta" / f"{args.frame_name}.npz"
+    if not img_path.exists() or not meta_path.exists():
+        raise SystemExit(
+            f"Frame {args.frame_name!r} not found under {data_dir} "
+            f"(looked for {img_path} and {meta_path}). Check --data-dir and "
+            f"--frame-name; a wrong --data-dir used to fail here as an opaque "
+            f"cv2 error with img_bgr=None rather than saying what was missing.")
+
+    img_bgr = cv2.imread(str(img_path))
     rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    meta = np.load(data_dir / "meta" / f"{args.frame_name}.npz", allow_pickle=True)
+    meta = np.load(meta_path, allow_pickle=True)
     radar_pts = meta["radar_pts"]
     gt_occ_grid = meta["occ_grid"]
 
