@@ -1,0 +1,15 @@
+# CARLA 0.10.0 (UE5.5) server config. Switched from 0.9.16 (E:\Carla) after it
+# fatally crashed twice under sustained use on this machine's RTX 5060 Laptop
+# GPU -- matching a warning already left in a prior project's config
+# (E:\New OAPS\configs\town.yaml) about this exact crash on this exact GPU.
+# 0.10.0 only ships one town (Town10HD_Opt, plus the Mine_01 test map), so all
+# four scenarios run here instead of splitting across Town10/Town04.
+town: Town10HD_Opt
+fixed_delta_seconds: 0.1
+synchronous_mode: true
+render_offscreen: false
+carla_root: E:\Carla-0.10.0\Carla-0.10.0-Win64-Shipping
+carla_exe: CarlaUnreal.exe
+carla_host: 127.0.0.1
+carla_port: 2000
+carla_timeout_s: 30.0

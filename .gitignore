@@ -1,0 +1,23 @@
+# Datasets -- multi-GB, fully regenerable from scripts/collect_chunked.py and
+# scripts/collect_dataset.py. Never track raw frames; do track the small,
+# derived artifacts under results/ and models/ that ARE the deliverable.
+data/
+
+# Per-run logs from collection, training, and adversarial-test invocations.
+logs/
+
+# Python bytecode / cache.
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor/OS noise.
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Pretrained third-party weights, auto-downloaded by ultralytics on first use
+# of YOLOv8n -- not a project artifact, no reason to version 6.5 MB of it.
+yolov8n.pt

@@ -1,0 +1,27 @@
+{
+  "contradiction": {
+    "neither_visible": 0.00882024100376827,
+    "neither_occluded": 0.15196499588134738
+  },
+  "particle_modes": {
+    "final_modes": {
+      "continues": 0.15702986255112128,
+      "slows": 0.1557913093753227,
+      "stops": 0.5015586210279256,
+      "turns back": 0.18562020704563056
+    },
+    "final_spread_m": 2.5426802011618066
+  },
+  "tiers": {
+    "tier_counts": {
+      "OCCLUDED": 20751,
+      "PARTIAL": 3667,
+      "VISIBLE": 10873
+    },
+    "distinct_partial_values": 632
+  },
+  "timeline": {
+    "episode": "urban_crossing_clear_day_ep02000",
+    "frames": 395
+  }
+}

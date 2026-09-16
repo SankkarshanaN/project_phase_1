@@ -1,0 +1,47 @@
+# Camera + BEV grid settings. Camera matches the spec's 800x600 resolution;
+# depth/semseg cameras are kept at the same resolution/FOV so occlusion_mask's
+# per-pixel projection lines up exactly with the RGB frame used for detection.
+camera:
+  width: 800
+  height: 600
+  fov: 90
+  x: 1.5   # forward offset from ego origin, meters
+  z: 1.7   # height, meters
+
+depth_camera:
+  width: 800
+  height: 600
+  fov: 90
+
+semseg_camera:
+  width: 800
+  height: 600
+  fov: 90
+
+radar:
+  horizontal_fov: 35
+  vertical_fov: 20
+  points_per_second: 1500
+  range: 100
+
+bev_grid:
+  size_cells: 20        # 20x20 grid, per spec
+  extent_m: 40.0         # covers 40m x 40m centered on ego
+  cell_size_m: 2.0
+
+occlusion_head:
+  num_classes: 3   # visible, occluded, unknown (+ empty handled separately)
+  loss_weight: 1.0
+
+# Per-actor occlusion grading (carla_tools/occlusion_tiers.py). Boundaries on
+# the continuous visibility fraction from bbox_projection.sample_visibility:
+#   visibility <= occluded_max            -> OCCLUDED (no pixels; amodal box)
+#   occluded_max < v <= partial_max       -> PARTIAL  (a sliver to most of it)
+#   visibility >  partial_max             -> VISIBLE
+# partial_max is a real experimental knob: raising it pulls nearly-clear
+# actors into the "hard" bucket and shifts every per-tier metric downstream.
+# The continuous fraction is recorded per box regardless, so these can be
+# re-binned in analysis without re-collecting.
+occlusion_tiers:
+  occluded_max: 0.05
+  partial_max: 0.65

@@ -1,0 +1,127 @@
+# Scenario definitions for CARLA 0.10.0. Blueprint names verified live against
+# this server's actual catalog (world.get_blueprint_library()) -- 0.10.0
+# replaced 0.9.x's vehicle set entirely (e.g. bus = vehicle.fuso.mitsubishi,
+# large van = vehicle.sprinter.mercedes, no Tesla/Audi/BMW/etc).
+#
+# All four scenarios run in Town10HD_Opt: 0.10.0 only ships that map (plus the
+# Mine_01 test map), so unlike the original 0.9.16 plan there's no separate
+# highway town for Scenario B -- it reuses Town10HD_Opt's straighter avenues
+# instead of Town04.
+scenario_types:
+  # Scenario A -- Occluded Pedestrian Crossing.
+  # A parked bus/van blocks the ego's view of a crosswalk; a pedestrian walks
+  # behind it at ~1.2 m/s. Ground truth keeps the pedestrian's true position
+  # every tick even while the RGB camera can't see them.
+  occluded_pedestrian_crossing:
+    town: Town10HD_Opt
+    occluder_blueprint_pool: ["vehicle.fuso.mitsubishi", "vehicle.sprinter.mercedes"]
+    crossing_actor_blueprint_pool: ["walker.pedestrian.0020", "walker.pedestrian.0028", "walker.pedestrian.0035"]
+    occluder_offset_range_m: [9.0, 13.0]
+    crossing_actor_speed_ms: 1.2
+    # Lateral offset of the parked occluder from the lane centre, metres
+    # (positive = right, toward the kerb). Was [-1.0, 1.0], which parked the
+    # bus in the middle of the ego's own lane rather than at the kerb -- so the
+    # walker placed in its shadow also ended up in the lane, starting the
+    # episode already inside the ego's path with nothing left to cross.
+    jitter_lateral_m: [2.6, 3.6]
+
+  # Scenario C -- Multi-Occlusion.
+  # Two pedestrians converge on the same crossing: one in clear view, one
+  # hidden behind a parked truck. Tests whether the pipeline tracks both.
+  multi_occlusion:
+    town: Town10HD_Opt
+    occluder_blueprint_pool: ["vehicle.firetruck.actors", "vehicle.carlacola.actors"]
+    visible_actor_blueprint_pool: ["walker.pedestrian.0017", "walker.pedestrian.0041"]
+    hidden_actor_blueprint_pool: ["walker.pedestrian.0023", "walker.pedestrian.0047"]
+    occluder_offset_range_m: [9.0, 13.0]
+    crossing_actor_speed_ms: 1.2
+    jitter_lateral_m: [2.6, 3.6]      # parked at the kerb; see Scenario A
+    # How far NEARER the ego the "visible" walker stands than the occluder, in
+    # meters along the lane. Formerly named visible_lateral_offset_m, which was
+    # misleading twice over: it is longitudinal, not lateral, and it is
+    # subtracted, so the walker ends up in front of the occluder rather than
+    # "further along the road" as the old comment claimed.
+    visible_stagger_m: 4.0
+
+  # Scenario B -- Blind-Spot Vehicle Cut-In (Town10HD_Opt, straightest
+  # available stretch -- spawn search below filters for one).
+  # Ego cruises at 60 km/h; a second vehicle merges from the rear-lateral
+  # blind spot at 70 km/h with zero prior camera track.
+  blindspot_cutin:
+    town: Town10HD_Opt
+    # Timing retuned after 85% of this scenario's collected frames came back
+    # with empty label files. The cut-in vehicle is the ONLY labelable actor
+    # here (no occluder, no background traffic), so any frame where it is
+    # behind the forward camera is necessarily empty -- and at the old
+    # settings it was, by construction, for the first 40 of 60 recorded ticks:
+    # starting 12 m back with only a 2.78 m/s closing rate, its bumper did not
+    # reach the camera plane until tick 40. Starting closer with a wider speed
+    # differential brings it into view at tick 8 instead, taking the non-empty
+    # share from 42% to 95% on the geometry alone.
+    ego_speed_kmh: 35.0    # well under the original 60 -- Town10's streets are tighter than a highway
+    cutin_speed_kmh: 60.0  # 6.94 m/s closing, vs 2.78 before
+    cutin_blueprint_pool: ["vehicle.lincoln.mkz", "vehicle.dodge.charger", "vehicle.mini.cooper"]
+    cutin_start_behind_m: 6.0       # how far behind ego the cut-in vehicle starts
+    cutin_lane_offset: 1             # +1 = adjacent lane to the right (blind spot side)
+    # Merge once roughly alongside. Larger values fire while the vehicle is
+    # still well behind the camera, so the manoeuvre finishes before anything
+    # can see it happen.
+    cutin_trigger_distance_m: 2.0
+    merge_ticks: 15                  # ticks over which the lateral lane-change blends in (1.5s at dt=0.1)
+    # Abort the episode if the two vehicles end up further apart than this
+    # laterally -- see step_blindspot.
+    max_lateral_separation_m: 8.0
+
+# Scenario D -- Adverse Weather Stack: re-runs the scenarios above under each
+# of these weather presets (heavy rain + night + fog simultaneously).
+weather_presets:
+  heavy_rain_night_fog:
+    cloudiness: 100.0
+    precipitation: 90.0
+    precipitation_deposits: 90.0
+    wind_intensity: 60.0
+    sun_altitude_angle: -30.0   # night
+    fog_density: 60.0
+    fog_distance: 15.0
+    wetness: 90.0
+  base_scenarios: [occluded_pedestrian_crossing, multi_occlusion, blindspot_cutin]
+
+# Per-episode pedestrian behaviour (carla_tools/walker_behavior.py). Walkers
+# were previously given one constant velocity at spawn and never touched again,
+# which made crossing prediction trivially solvable by a constant-velocity
+# model -- the measured accuracy would have described the scripting, not the
+# method. These distributions exist to break that.
+vru_behaviour:
+  # Kinds and their sampling weights. approach_abort and stop_midway are the
+  # negatives; without them "will they cross?" has only one answer and a
+  # predictor that always says yes scores perfectly. Roughly 60/40 crossing to
+  # non-crossing.
+  weights:
+    cross_steady: 0.30
+    cross_hesitate: 0.20
+    cross_run: 0.10
+    approach_abort: 0.25
+    stop_midway: 0.15
+  speed_range_ms: [0.8, 2.5]      # child/elderly through to a hurrying adult
+  start_delay_range_s: [0.0, 1.5]  # keeps the walker hidden into the recorded frames
+  hesitate_range_s: [0.5, 2.0]
+  run_multiplier_range: [1.5, 2.2]
+
+  # The hesitate/abort decision point, as a FRACTION of the walker's distance
+  # to the edge of the ego's path. It must sit before that edge or an aborter
+  # has already stepped into the lane and the retrospective label counts them
+  # as a crosser -- measured, an absolute decision distance put 91% of all
+  # behaviours into the corridor and wiped out the negatives entirely.
+  kerb_fraction_range: [0.55, 0.9]
+  # stop_midway deliberately straddles the edge: a pedestrian frozen in the
+  # road is a real and dangerous case and should count as in-path, while one
+  # who stops short of it should not.
+  stop_fraction_range: [0.7, 1.6]
+
+  # Fallbacks, used only when a scenario cannot supply its road-edge distance.
+  kerb_distance_range_m: [1.5, 3.0]
+  stop_at_range_m: [2.0, 4.0]
+
+episode:
+  max_steps: 300
+  seed_base: 12345
