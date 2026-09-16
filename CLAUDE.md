@@ -108,6 +108,23 @@ No server needed:
 & $PY scripts/validate_occlusion_grid.py --frame-name urban_crossing_clear_day_ep00000_f0020
 ```
 
+## Tests
+
+`tests/` holds 10 scripts written during development to pin down specific
+defects (lateral-sign, occlusion tiers, tracking dead-reckoning, particle-filter
+multi-modality, walker behaviour, the full 9-component pipeline). Plain scripts,
+no pytest -- each prints its own PASS/FAIL and exits non-zero on failure.
+
+```powershell
+& $PY tests/run_offline.py          # 8 tests, no CARLA server needed
+& $PY tests/test_lateral_sign.py    # needs a live CARLA server
+& $PY tests/test_weather.py         # needs a live CARLA server
+```
+
+Run `run_offline.py` after any change to `perception/`, `carla_tools/data_collector.py`,
+`carla_tools/walker_behavior.py`, or `carla_tools/occlusion_tiers.py` -- these
+tests exist because each one caught a real defect once.
+
 There is no `requirements.txt`. The environment needs: the `carla` 0.10.0 Python API,
 `torch`, `ultralytics`, `opencv-python`, `numpy`, `pyyaml`, `matplotlib`, `seaborn`,
 `scikit-learn`. MiDaS is pulled at runtime via `torch.hub.load("intel-isl/MiDaS", ...)`,
