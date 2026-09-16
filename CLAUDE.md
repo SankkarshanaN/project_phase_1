@@ -20,50 +20,48 @@ $PY = "$env:USERPROFILE\anaconda3\envs\oaps-gpu\python.exe"
 
 Read `docs/RESULTS.md` and `docs/DASHBOARD.md` before changing `perception/` or
 `models/` — they record why several non-obvious choices were made and carry every
-measured number. Both describe the **v2 dataset** (15,420 frames, `data/raw_v2`)
-and are current. Any figure quoted from the v1 era — the 99.7% validation accuracy
-above all — is invalid; see "Dataset v1 was broken" below.
+measured number. Both describe the **v2 dataset** (15,270 frames, `data/raw_v2`,
+collected 2026-09-16) and are current. Any figure quoted from the v1 era — the
+99.7% validation accuracy above all — is invalid; see "Dataset v1 was broken"
+below.
 
-## READ THIS FIRST: the occlusion-grid ground truth needs a fresh CARLA collection
+## RESOLVED: the occlusion-grid ground truth was recollected (2026-09-16)
 
 `carla_tools/occlusion_mask.BevProjector._project()` had a sign error in its
 vertical pixel projection (`py`), found during a full-project bug sweep by
 cross-referencing it against `bbox_projection._project_point`'s independent,
 already-visually-verified implementation of the identical CARLA camera-projection
-recipe. Confirmed numerically: at this rig's camera height, the unfixed formula
-placed a ground point 3.5 m directly in front of the lens near the TOP of the
-image (row 106 of 600) -- physically impossible for a forward-facing, level
-camera -- while the fix places it near the bottom (row 494), matching a dashcam
-view. **It is fixed in the code now.**
+recipe -- proven with an exact, zero-tolerance match (0.00 px difference across
+every distance and lateral offset tested against that reference). Fixed.
 
-The problem: `BevProjector` is shared by BOTH the ground-truth generator
-(`occlusion_mask.compute_labels`, used at collection time to write every
-`occ_grid`/`sem_grid` in `data/raw_v2`) AND the runtime detector
-(`perception/occlusion_grid.py` imports the same class). Every frame currently
-on disk had its ground truth computed with the OLD, buggy pixel mapping. The
-bug was invisible to every validation already run precisely because ground
-truth and prediction shared it identically -- comparing a thing against itself
-under the same error looks like agreement.
+`BevProjector` is shared by BOTH the ground-truth generator
+(`occlusion_mask.compute_labels`) AND the runtime detector
+(`perception/occlusion_grid.py` imports the same class), which is why the bug
+was invisible to every validation run against the first v2 collection -- ground
+truth and prediction shared the identical error, so comparing them agreed with
+itself. **`data/raw_v2` has been fully recollected against the fixed geometry**
+(15,270 frames, 2026-09-16); the first, invalid collection is archived at
+`data/raw_v2_stale_projection`, not deleted.
 
-**Consequence: every number in `docs/RESULTS.md` SS3 (the occlusion detector's
-precision/recall/F1/cell-agreement, and the whole shadow_tolerance sweep) is
-unverified until the dataset is recollected against a live CARLA server and
-those figures regenerated.** Do NOT regenerate them against the EXISTING
-`data/raw_v2` -- that would compare the now-fixed runtime detector against
-STALE, differently-projected ground truth, which is not a meaningful
-comparison and would likely read as a regression that has nothing to do with
-detector quality. The right and only fix is a full recollection.
+**The corrected numbers are considerably worse, and that is the real, honest
+result, not a new bug.** Recall against the fixed ground truth: **0.173** at the
+old default threshold (was 0.629 against the buggy ground truth), maximum
+achievable recall across the whole threshold sweep **0.479** (was 0.854). This
+is not a detector regression -- the runtime detector's code did not change --
+it is the ground truth revealing far more real occlusion than the buggy
+projection ever showed: measured directly, the old ground truth marked ~7-10%
+of in-FOV cells OCCLUDED in a typical urban frame, the fixed one marks 68-94%
+in the same kind of frame, because the buggy projection was often sampling sky
+instead of the ground plane. `DEFAULT_SHADOW_TOLERANCE` in
+`perception/occlusion_grid.py` moved from 0.12 to **0.02** (the best-F1 point
+on the re-run sweep) accordingly. Full account: `docs/RESULTS.md` SS3.
 
-This does NOT affect: the 2D amodal boxes (`bbox_projection.py` was already
+This did NOT affect: the 2D amodal boxes (`bbox_projection.py` was already
 correct and is a separate implementation), occlusion tiers derived from those
 boxes, the evidential head, tracking, intent prediction, or any of the
 sensor-fusion/ablation numbers in SS4-SS5 -- none of those read pixel rows
-through `BevProjector`.
-
-**Next action once CARLA use is permitted again:** recollect `data/raw_v2`
-(`scripts/collect_chunked.py`), re-run `scripts/check_dataset.py`, regenerate
-`scripts/generate_report_figures.py` and `scripts/sweep_shadow_tolerance.py`,
-and rewrite `docs/RESULTS.md` SS3 with the fresh numbers.
+through `BevProjector`, and their numbers moved only by ordinary
+recollection-to-recollection variance.
 
 ## Hard prerequisite: a running CARLA server
 
@@ -281,21 +279,27 @@ depth buffer, semseg image, or actor list. That is the whole claim of the projec
 `perception/occlusion_grid.classify_grid` follows a fixed decision order — shadow
 (OCCLUDED) → radar return (VISIBLE) → camera-clear (EMPTY) → UNKNOWN. Occlusion wins
 over radar because a reflection off the occluder's own surface otherwise reads as
-"visible". `shadow_tolerance` (default 0.12) is the one real tuning knob; measured on v2,
-precision 0.89 / recall 0.63 / F1 0.74 at the default. Left at 0.12 rather than
-the best-F1 0.08 deliberately: F1 differs by 0.002 while precision is 0.873
-against 0.748, and false alarms cost more in something feeding a braking decision.
+"visible". `shadow_tolerance` (`DEFAULT_SHADOW_TOLERANCE = 0.02`) is the one real
+tuning knob; measured on v2 against the CORRECTED ground truth (see the
+"RESOLVED" note near the top of this file), precision 0.84 / recall 0.48 / F1
+0.61 at the default -- the best-F1 point on the full sweep, moved here from a
+now-abandoned 0.12 because that threshold's recall (0.19) is too low to be a
+usable safety signal regardless of its precision. This is the weakest component
+in the pipeline: maximum achievable recall at ANY threshold is 0.48. Full
+account, including why the numbers dropped so far from an earlier (invalid)
+measurement, in `docs/RESULTS.md` §3.
 
 **Do not reintroduce a marching shadow propagation here.** `_shadow_grid_from_disparity`
-used to walk outward cell by cell carrying a running ground expectation, which
-capped recall at 0.259. Every marched track burns its first cell seeding the
-trend, and a seed can never be flagged — going from 20 marched columns to 40
-ray-correct angular bins *doubled* the seeds and dropped recall to 0.297, which
-is how the cause was isolated. `_ground_profile` now fits bare-ground disparity
-per range ring once per frame and tests each cell independently, mirroring how
-the ground truth is computed (`BevProjector.compute_labels` is also per-cell with
-no propagation). Recall went 0.259 -> 0.629, F1 0.408 -> 0.736. Full account in
-`docs/RESULTS.md` §3.
+used to walk outward cell by cell carrying a running ground expectation. Every
+marched track burns its first cell seeding the trend, and a seed can never be
+flagged — going from 20 marched columns to 40 ray-correct angular bins *doubled*
+the seeds and made recall worse, which is how the cause was isolated.
+`_ground_profile` now fits bare-ground disparity per range ring once per frame
+and tests each cell independently, mirroring how the ground truth is computed
+(`BevProjector.compute_labels` is also per-cell with no propagation) — a real
+improvement over marching, confirmed by a paired comparison against the same
+ground truth, even though the detector's absolute accuracy is lower than an
+earlier (invalid) measurement suggested. Full account in `docs/RESULTS.md` §3.
 
 `classify_grid` takes an optional `norm_disparity` so a real-time caller can
 refresh MiDaS every few frames while folding in radar every frame. MiDaS dominates

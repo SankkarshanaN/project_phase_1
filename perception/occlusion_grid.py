@@ -9,15 +9,15 @@ UNKNOWN, following the spec's decision order:
     4. else -> UNKNOWN
 
 This module builds "obstacle_map" and "camera_depth" from the SAME MiDaS
-disparity map (there is no separate 3D obstacle reconstruction step here):
-for each lateral column of the grid, cells are walked in order of increasing
-distance from the ego, tracking a smoothly-decreasing "expected clear-ground
-disparity" trend. A cell whose actual disparity jumps well above that trend
-means something nearer than the ground is blocking the ray to it (OCCLUDED,
-and this stays true for every cell further along the same ray, since the
-camera is now looking at the obstacle's surface, not the ground behind it).
-A cell that stays on the smooth trend is camera-confirmed clear (EMPTY,
-unless radar already claimed it VISIBLE). Radar detections are converted from
+disparity map (there is no separate 3D obstacle reconstruction step here).
+`_ground_profile` fits what unoccluded ground reads as a function of range,
+once per frame, from a low quantile of disparity within each range ring; a
+cell whose actual disparity reads well above its own range's fitted level has
+something nearer than the ground in front of it (OCCLUDED). A cell at or
+below the fitted level is camera-confirmed clear (EMPTY, unless radar already
+claimed it VISIBLE). This replaced an earlier cell-by-cell marching
+propagation -- see `_ground_profile`'s docstring for why marching was wrong
+regardless of which direction it walked. Radar detections are converted from
 the sensor's native (azimuth, depth) polar form into the same ego-local
 (forward, lateral) grid cells as `carla_tools.occlusion_mask.BevProjector`.
 """
@@ -39,6 +39,19 @@ GROUND_QUANTILE = 0.30
 
 # Range rings the ground profile is fitted over, in cells of forward distance.
 RING_CELLS = 1
+
+# Default shadow-detection threshold. Re-measured after fixing a ground-truth
+# camera-projection bug in carla_tools.occlusion_mask (see that module's
+# _project docstring and docs/RESULTS.md SS3): the corrected ground truth shows
+# far more real occlusion in a dense urban scene than the buggy one did, and
+# against it this detector's recall collapses to 0.19 at the OLD default
+# (0.12) -- too low to serve as a usable safety signal regardless of its high
+# precision there. Moved to 0.02, the best-F1 point on the re-run sweep
+# (precision 0.84, recall 0.48, F1 0.61 -- scripts/sweep_shadow_tolerance.py).
+# This does not fix the detector; it picks the best available point on a
+# curve that peaks lower than previously measured. Re-measure with
+# sweep_shadow_tolerance.py before changing this again.
+DEFAULT_SHADOW_TOLERANCE = 0.02
 
 
 def _ground_profile(sampled: np.ndarray, ray_range: np.ndarray,
@@ -92,7 +105,7 @@ def _ground_profile(sampled: np.ndarray, ray_range: np.ndarray,
 
 
 def _shadow_grid_from_disparity(norm_disparity: np.ndarray, projector: BevProjector,
-                                  tolerance: float = 0.12
+                                  tolerance: float = DEFAULT_SHADOW_TOLERANCE
                                   ) -> tuple[np.ndarray, np.ndarray]:
     """Returns (shadow, valid) boolean (n, n) grids. `shadow[i, j]` is True
     where a nearer-than-ground obstacle blocks the ray to that cell."""
@@ -137,7 +150,8 @@ def _radar_hit_grid(radar_pts: np.ndarray, grid_cfg: dict) -> np.ndarray:
 
 
 def classify_grid(rgb: np.ndarray, radar_pts: np.ndarray, bev_cfg: dict,
-                    shadow_tolerance: float = 0.12, clear_threshold: float = 0.5,
+                    shadow_tolerance: float = DEFAULT_SHADOW_TOLERANCE,
+                    clear_threshold: float = 0.5,
                     norm_disparity: np.ndarray | None = None) -> np.ndarray:
     """Returns an (n, n) uint8 grid of VISIBLE/OCCLUDED/EMPTY/UNKNOWN labels
     for one frame, using only camera (MiDaS) + radar -- no CARLA ground truth.
