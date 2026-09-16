@@ -14,14 +14,14 @@
   },
   "tiers": {
     "tier_counts": {
-      "OCCLUDED": 20751,
-      "PARTIAL": 3667,
-      "VISIBLE": 10873
+      "OCCLUDED": 20698,
+      "PARTIAL": 5567,
+      "VISIBLE": 27232
     },
-    "distinct_partial_values": 632
+    "distinct_partial_values": 741
   },
   "timeline": {
-    "episode": "urban_crossing_clear_day_ep02000",
-    "frames": 395
+    "episode": "urban_crossing_clear_day_ep62001",
+    "frames": 315
   }
 }

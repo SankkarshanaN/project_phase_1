@@ -1,50 +1,82 @@
 # Phase 1-4 Results Summary
 
-For the full, journal-ready writeup with all caveats and honest limitations, see
-`docs/RESULTS.md` (quantitative results) and `docs/DASHBOARD.md` (live demo
-explained panel-by-panel). This file is the short version.
+For the full, current, journal-ready writeup with all caveats and honest
+limitations, see `docs/RESULTS.md` (quantitative results, measured against the
+**15,420-frame `data/raw_v2` dataset**) and `docs/DASHBOARD.md` (live demo
+explained panel-by-panel). This file is a short pointer, not a substitute.
+
+> **The images in this folder are dated 27-28 July** -- early pipeline
+> verification captured before the v2 rework (the lateral-sign fix, the
+> occlusion-detector rewrite, the roaming-ego scenario). They still show the
+> pipeline's components working -- a bounding box surviving partial occlusion,
+> MiDaS depth alongside RGB, the 3-panel dashboard layout -- but **none of the
+> numbers below, or in the images' captions, should be read as the current
+> measured results.** A fresh capture against the fixed pipeline and final
+> dataset has not been taken; do that before using these in a presentation
+> where the numbers matter, or pull current figures from `results/figures/`
+> instead, which are regenerated from `data/raw_v2` and are current as of
+> `docs/RESULTS.md`.
 
 ## Phase 1 — Environment Setup
 - CARLA 0.10.0 connected, sensor rig (RGB + depth + semseg + radar) frame-synced, 0 dropped frames over 100 ticks.
 
-## Phase 2 — Dataset Collection
-- **8,280 frames** (spec target: 8,000) across all 3 scenario types (occluded pedestrian
-  crossing, multi-occlusion, blind-spot cut-in) x 2 weather conditions (clear + heavy
-  rain/night/fog).
-- Full YOLO-format bounding box labels + occlusion ground truth + radar data per frame.
+## Phase 2 — Dataset Collection (superseded -- see docs/RESULTS.md §1)
+- Original run: 8,280 frames across 3 staged scenarios x 2 weather conditions.
+- **Current: 15,420 frames across 4 scenarios** (adds the roaming-ego
+  `urban_crossing` scenario), all clear-day -- CARLA 0.10.0's weather API does
+  not function on this build (confirmed by measurement; see `docs/RESULTS.md`
+  and `scenarios/scenario_d_adverse_weather.py`), so adverse conditions are
+  evaluated by calibrated post-hoc degradation instead of simulated weather.
 
-## Phase 3 — Evidential Confidence Scorer
-- Trained on 5,253 held-out labeled crops (vehicle / pedestrian / background).
-- **Validation accuracy: 99.7%** (only 12 errors out of 5,253)
-- Radar confidence score (rule-based SNR proxy) and uncertainty flag (threshold-based) added
-  after an explicit spec audit -- both were gaps in the first pass, now implemented and shown
-  live in the dashboard.
+## Phase 3 — Evidential Confidence Scorer (superseded -- see docs/RESULTS.md §2)
+- Original figure: 99.7% validation accuracy. **This number is invalid** -- it
+  came from a per-crop random train/validation split that put near-duplicate
+  crops of the same object on both sides of the boundary.
+- **Current: 0.948 +/- 0.004**, on a split grouped by episode so no frame from
+  a validation episode appears in training. This is the honest number.
+- Radar confidence score (density + depth-cluster-tightness proxy) and
+  uncertainty flag (threshold-based) are implemented and shown live in the
+  dashboard; thresholds are calibrated from measured real CARLA frames (see
+  `perception/sensor_health.py`'s header).
 
-## Phase 4 — Three-State Occlusion Detector
-- Built from MiDaS-small monocular depth + radar only (no CARLA ground-truth cheat).
-- Validated over 200 sampled frames (80,000 cells): precision 0.98, recall 0.55, F1 0.71,
-  89% overall cell agreement against ground truth. Precision is strong; recall is the honest
-  weak point (see `docs/RESULTS.md` for why, and what it means).
-- `4_occlusion_grid_validation.jpg`: predicted OCCLUDED region (red, middle panel) visually
-  matches the ground-truth occlusion shape (red, right panel) for one example frame.
+## Phase 4 — Three-State Occlusion Detector (superseded -- see docs/RESULTS.md §3)
+- Original figure: precision 0.98, recall 0.55 (on the old, staged-only dataset).
+- **Current, on data/raw_v2: precision 0.888, recall 0.629, F1 0.736**, cell
+  agreement 0.913 -- after fixing a defect where the detector marched shadow
+  outward cell-by-cell, spending each track's first cell as an unrecoverable
+  trend seed. That capped recall at 0.259 regardless of threshold; replacing
+  the march with a per-frame ground-disparity fit (mirroring how the ground
+  truth itself is computed) fixed it. Full account, including the sweep that
+  proves it's not just a threshold choice, in `docs/RESULTS.md` §3.
+- `4_occlusion_grid_validation.jpg` shows the OLD detector's output and should
+  not be quoted as current.
 
 ## Live Dashboard
-- `5_live_dashboard_3panel.jpg`: the rebuilt 3-panel live demo -- camera feed with
-  plain-language detection labels, the occlusion grid, and a raw radar bird's-eye scatter
-  plot, all from the car's own point of view, running against live open-world CARLA traffic.
+- `5_live_dashboard_3panel.jpg`: the 3-panel live demo layout -- camera feed
+  with plain-language detection labels, the occlusion grid, and a raw radar
+  bird's-eye scatter plot. The layout is current; the specific numbers visible
+  in this particular screenshot predate later fixes (notably a health-monitor
+  bug where the radar/camera "disagreement" penalty fired on ~100% of frames
+  because the radar's 35 deg FOV is narrower than the camera's 90 deg --
+  fixed in `perception/pipeline.py`).
 
 ## Image files in this folder
 1. `1_scenario_A_occluded_pedestrian_bbox.jpg` — bus occluding a pedestrian; pedestrian still
    correctly boxed while mostly hidden.
 2. `2_scenario_B_blindspot_cutin_bbox.jpg` — cut-in vehicle merged from blind spot, now visible ahead.
 3. `3_midas_depth_comparison.jpg` — RGB frame next to its MiDaS depth estimate.
-4. `4_occlusion_grid_validation.jpg` — RGB / predicted 20x20 occlusion grid / ground-truth grid, side by side.
+4. `4_occlusion_grid_validation.jpg` — RGB / predicted 20x20 occlusion grid / ground-truth grid, side by side (old detector -- see note above).
 5. `5_live_dashboard_3panel.jpg` — the live 3-panel dashboard (camera / occlusion map / radar view).
 
-## Known limitations (worth stating proactively)
+## Known limitations (current -- see docs/RESULTS.md for the full list)
 - MiDaS gives *relative*, not metric, depth (no fixed physical scale) — this is exactly why the
   occlusion detector fuses in radar rather than trusting camera depth alone.
-- End-to-end pipeline FPS measured 2-9 (not the spec's 15+ MiDaS-alone target on an RTX 3050) —
-  dominated by CARLA 0.10.0's UE5.5 rendering overhead plus running 4 models concurrently on
-  one GPU. See `docs/RESULTS.md` for the full discussion, including an observed CARLA
-  server performance-degradation-over-uptime finding.
+- The occlusion detector still under-detects: roughly two occluded cells in five are missed at
+  the default threshold, and the sweep shows this is a property of the detector, not the
+  operating point.
+- End-to-end pipeline FPS measures 2-9 in the live dashboard (5.5-6.0 after moving MiDaS off
+  the per-frame path), against the spec's 15+ MiDaS-alone target on a different GPU. Dominated
+  by CARLA 0.10.0's UE5.5 rendering overhead plus running 4 models concurrently on one GPU.
+- Two radar faults (clutter, range bias) are difficult for a self-referential health monitor to
+  see when present from before the monitor starts observing. See `docs/RESULTS.md` §6 for the
+  full account, including a cross-sensor range check added to close part of this gap.
