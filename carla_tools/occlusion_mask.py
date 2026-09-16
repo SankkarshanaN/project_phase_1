@@ -59,9 +59,41 @@ class BevProjector:
         valid_front = x_fwd > 0.1
 
         # CARLA sensor axes (x-fwd, y-right, z-up) -> pinhole convention
-        # (x-right, y-down, z-fwd) used by the K matrix below.
+        # (x-right, y-down, z-fwd) used by the K matrix below. y-down means
+        # the sign of the z (up) component must FLIP: a point physically
+        # below the camera (z_up negative, as every ground cell is) has to
+        # come out with a LARGER pixel row (further down the image), which
+        # needs `-z_up`, not `z_up`.
+        #
+        # This was found missing during a full-project bug sweep by comparing
+        # against `bbox_projection._project_point`, which does the identical
+        # remap correctly (`point_camera = [pc[1], -pc[2], pc[0]]` -- CARLA's
+        # own documented bounding-box-tutorial pattern) and whose output (2D
+        # boxes drawn on real camera frames all session) has been visually
+        # verified correct throughout this project. Sanity-checked numerically
+        # too: at this rig's camera height (z=1.7 m) and a ground cell 5 m
+        # ahead, the unfixed formula placed py at row 106 of a 600-row image
+        # -- near the TOP, i.e. sky -- for a ground point 3.5 m in front of
+        # the lens, which is physically impossible for a forward-facing,
+        # level-mounted camera. The fixed formula places it at row 494, near
+        # the bottom, matching a dashcam view of the road immediately ahead.
+        #
+        # Consequence: EVERY `occ_grid`/`sem_grid` already saved in
+        # `data/raw_v2` was computed by this SAME buggy method (ground truth
+        # and the runtime detector in perception/occlusion_grid.py both
+        # construct their pixel coordinates via this one BevProjector), so the
+        # bug was invisible to every ground-truth-vs-prediction comparison
+        # already run -- both sides shared the identical error and therefore
+        # agreed with each other. It does NOT invalidate the amodal 2D boxes
+        # (bbox_projection.py is a separate, correct implementation) or
+        # anything downstream of them (tiers, the evidential head, tracking,
+        # intent). It DOES mean every occlusion-grid number in
+        # docs/RESULTS.md SS3 -- precision/recall/F1/cell-agreement, and the
+        # whole shadow_tolerance sweep -- must be treated as unverified until
+        # the dataset is recollected and those figures regenerated against
+        # this corrected geometry.
         px = self.cx + self.fx * (y_right / x_fwd)
-        py = self.cy + self.fy * (z_up / x_fwd)
+        py = self.cy - self.fy * (z_up / x_fwd)
 
         in_bounds = (px >= 0) & (px < self.width) & (py >= 0) & (py < self.height)
         valid = valid_front & in_bounds

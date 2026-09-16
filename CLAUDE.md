@@ -24,6 +24,47 @@ measured number. Both describe the **v2 dataset** (15,420 frames, `data/raw_v2`)
 and are current. Any figure quoted from the v1 era — the 99.7% validation accuracy
 above all — is invalid; see "Dataset v1 was broken" below.
 
+## READ THIS FIRST: the occlusion-grid ground truth needs a fresh CARLA collection
+
+`carla_tools/occlusion_mask.BevProjector._project()` had a sign error in its
+vertical pixel projection (`py`), found during a full-project bug sweep by
+cross-referencing it against `bbox_projection._project_point`'s independent,
+already-visually-verified implementation of the identical CARLA camera-projection
+recipe. Confirmed numerically: at this rig's camera height, the unfixed formula
+placed a ground point 3.5 m directly in front of the lens near the TOP of the
+image (row 106 of 600) -- physically impossible for a forward-facing, level
+camera -- while the fix places it near the bottom (row 494), matching a dashcam
+view. **It is fixed in the code now.**
+
+The problem: `BevProjector` is shared by BOTH the ground-truth generator
+(`occlusion_mask.compute_labels`, used at collection time to write every
+`occ_grid`/`sem_grid` in `data/raw_v2`) AND the runtime detector
+(`perception/occlusion_grid.py` imports the same class). Every frame currently
+on disk had its ground truth computed with the OLD, buggy pixel mapping. The
+bug was invisible to every validation already run precisely because ground
+truth and prediction shared it identically -- comparing a thing against itself
+under the same error looks like agreement.
+
+**Consequence: every number in `docs/RESULTS.md` SS3 (the occlusion detector's
+precision/recall/F1/cell-agreement, and the whole shadow_tolerance sweep) is
+unverified until the dataset is recollected against a live CARLA server and
+those figures regenerated.** Do NOT regenerate them against the EXISTING
+`data/raw_v2` -- that would compare the now-fixed runtime detector against
+STALE, differently-projected ground truth, which is not a meaningful
+comparison and would likely read as a regression that has nothing to do with
+detector quality. The right and only fix is a full recollection.
+
+This does NOT affect: the 2D amodal boxes (`bbox_projection.py` was already
+correct and is a separate implementation), occlusion tiers derived from those
+boxes, the evidential head, tracking, intent prediction, or any of the
+sensor-fusion/ablation numbers in SS4-SS5 -- none of those read pixel rows
+through `BevProjector`.
+
+**Next action once CARLA use is permitted again:** recollect `data/raw_v2`
+(`scripts/collect_chunked.py`), re-run `scripts/check_dataset.py`, regenerate
+`scripts/generate_report_figures.py` and `scripts/sweep_shadow_tolerance.py`,
+and rewrite `docs/RESULTS.md` SS3 with the fresh numbers.
+
 ## Hard prerequisite: a running CARLA server
 
 Every script under `carla_tools/`, `scenarios/`, and `scripts/` except

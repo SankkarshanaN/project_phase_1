@@ -143,7 +143,26 @@ behaviour the design intends:
 
 ---
 
-## 3. Three-state occlusion detector (BEV)
+## 3. Three-state occlusion detector (BEV) — NUMBERS BELOW ARE PENDING RE-VALIDATION
+
+> **A ground-truth bug was found in this section after these numbers were
+> measured, and it invalidates them.** `carla_tools.occlusion_mask.BevProjector`
+> (shared by the ground-truth generator AND the runtime detector this section
+> evaluates) had a sign error in its vertical pixel projection, confirmed and
+> fixed during a later full-project sweep -- see CLAUDE.md's "READ THIS FIRST"
+> section for the full account. Every `occ_grid` in `data/raw_v2` was written
+> under the buggy geometry, so every number below was computed by comparing the
+> runtime detector against ground truth that shared its exact error -- which is
+> why nothing in the extensive validation already done (per-scenario agreement,
+> the shadow-tolerance sweep, the visual figures) caught it. The relative
+> comparison in this section (marching vs. the ground-profile fit) is still an
+> honest account of which of two RUNTIME methods did better against the SAME
+> (flawed) ground truth; the absolute precision/recall/F1/cell-agreement figures
+> are not trustworthy until the dataset is recollected against a live CARLA
+> server with the fix in place and this section is regenerated. Left in place
+> below, unedited, exactly as measured, so the before/after story of finding and
+> fixing the marching defect is preserved -- read the numbers as history, not as
+> the current state of the detector.
 
 Runtime path only: MiDaS relative disparity + radar, never CARLA's depth buffer.
 Validated against the ground-truth grid over 200 sampled frames (80,000 cells).
@@ -550,10 +569,11 @@ arrays eagerly and closes the file.
 
 ## 9. Honest summary of limitations
 
-- **The BEV occlusion detector still under-detects**: recall 0.629 at the default
-  operating point (0.854 at the recall-maximising end, at precision 0.483), so
-  roughly two occluded cells in five are missed. Much improved — it was 0.259 —
-  but under-detection remains its failure mode. §3.
+- **The BEV occlusion detector's measured numbers (recall 0.629, up from 0.259
+  after the marching fix) are pending re-validation.** A ground-truth
+  camera-projection bug, shared identically by ground truth and the runtime
+  detector, was found after these numbers were measured -- see CLAUDE.md and
+  §3. Fixed in code; requires a fresh CARLA collection to re-measure honestly.
 - **No adverse-weather data exists**, and cannot be collected on this CARLA build.
   Robustness is evaluated by post-hoc frame degradation instead (§6), which is a weaker
   claim than simulating the conditions.
