@@ -106,6 +106,11 @@ No server needed:
 
 # Spot-check the occlusion grid against saved ground truth for ONE frame
 & $PY scripts/validate_occlusion_grid.py --frame-name urban_crossing_clear_day_ep00000_f0020
+
+# A real p_cross-over-time trace (genuine crossing + genuine near-miss), replayed
+# through the actual tracker + intent predictor. NOT generate_framework_figures'
+# crossing_timeline.png, which despite its name plots visibility/tier, not p_cross.
+& $PY scripts/plot_crossing_trace.py --data-dir data/raw_v2
 ```
 
 ## Tests

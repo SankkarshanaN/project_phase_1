@@ -6,11 +6,17 @@ It produces nothing for the framework components added since, which is what
 this covers:
 
   figures/occlusion_tiers.png        -- tier distribution and the visibility histogram
-  figures/crossing_timeline.png      -- one episode: visibility, tier and p_cross over time
-  figures/sensor_ablation.png        -- camera / radar / fused, the headline result
+  figures/crossing_timeline.png      -- one episode: visibility and occlusion tier over
+                                         time (NOT p_cross -- see scripts/plot_crossing_trace.py
+                                         for an actual p_cross-over-time figure, replayed
+                                         through the real tracker + intent predictor)
   figures/contradiction_matrix.png   -- P(hazard) by sensor agreement x occlusion state
   figures/particle_modes.png         -- multi-hypothesis mass while a hazard is hidden
-  figures/robustness.png             -- degradation per injected fault, and whether it was noticed
+
+`sensor_ablation.png` and `robustness.png` are NOT produced here despite an earlier
+version of this docstring claiming they were -- that ablation and adversarial-fault
+data is printed as tables by scripts/evaluate_prediction.py and
+scripts/adversarial_test.py respectively, not saved as figures.
 
 Everything is computed from the collected dataset or from the components
 themselves; nothing is illustrative. Figures whose inputs are missing are
