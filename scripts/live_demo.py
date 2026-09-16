@@ -34,11 +34,16 @@ Run with CARLA already started WITHOUT -RenderOffScreen, e.g.:
 Press 'q' in the dashboard window to stop and clean up.
 """
 import math
+import queue
 import random
 import sys
 import time
 from collections import deque
 from pathlib import Path
+
+# Consecutive tick failures (dropped sensor frame, an actor destroyed mid-tick)
+# before giving up rather than retrying forever against a dead server.
+MAX_TICK_FAILURES = 15
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -388,129 +393,146 @@ def main():
     step = 0
     fps_counter = deque(maxlen=30)
     cached_disparity = None
+    consecutive_failures = 0
     try:
         while True:
-            frame = world.tick()
-            spectator.set_transform(rig.rgb.get_transform())
-            rgb_img = rig.rgb_buf.get(frame)
-            radar_data = rig.radar_buf.get(frame)
-            rgb = rgb_to_array(rgb_img)
-            radar_pts = radar_to_array(radar_data)
+            try:
+                frame = world.tick()
+                spectator.set_transform(rig.rgb.get_transform())
+                rgb_img = rig.rgb_buf.get(frame)
+                radar_data = rig.radar_buf.get(frame)
+                rgb = rgb_to_array(rgb_img)
+                radar_pts = radar_to_array(radar_data)
 
-            if step >= 10:  # let traffic settle
-                results = yolo.predict(rgb, conf=0.35, classes=list(COCO_TO_OURS.keys()), verbose=False)[0]
-                cam_panel = cv2.cvtColor(rgb.copy(), cv2.COLOR_RGB2BGR)
+                if step >= 10:  # let traffic settle
+                    results = yolo.predict(rgb, conf=0.35, classes=list(COCO_TO_OURS.keys()), verbose=False)[0]
+                    cam_panel = cv2.cvtColor(rgb.copy(), cv2.COLOR_RGB2BGR)
 
-                _banner(cam_panel, "WHAT THE CAR SEES (live camera)")
+                    _banner(cam_panel, "WHAT THE CAR SEES (live camera)")
 
-                cam_cfg = bev_cfg["camera"]
-                boxes = results.boxes.xyxy.cpu().numpy()
-                coco_classes = results.boxes.cls.cpu().numpy().astype(int)
+                    cam_cfg = bev_cfg["camera"]
+                    boxes = results.boxes.xyxy.cpu().numpy()
+                    coco_classes = results.boxes.cls.cpu().numpy().astype(int)
 
-                # Run the full framework on this frame. YOLO has already been
-                # called above for the panel, so its boxes are handed in rather
-                # than letting the pipeline detect again -- one inference per
-                # frame, not two.
-                dets = []
-                for box, coco_cls in zip(boxes, coco_classes):
-                    our_cls = COCO_TO_OURS.get(coco_cls, 0)
-                    probs, uncertainty = score_crop(evidential, device, rgb, box)
-                    dets.append((tuple(float(v) for v in box), our_cls,
-                                  float(probs[0, our_cls]), uncertainty))
+                    # Run the full framework on this frame. YOLO has already been
+                    # called above for the panel, so its boxes are handed in rather
+                    # than letting the pipeline detect again -- one inference per
+                    # frame, not two.
+                    dets = []
+                    for box, coco_cls in zip(boxes, coco_classes):
+                        our_cls = COCO_TO_OURS.get(coco_cls, 0)
+                        probs, uncertainty = score_crop(evidential, device, rgb, box)
+                        dets.append((tuple(float(v) for v in box), our_cls,
+                                      float(probs[0, our_cls]), uncertainty))
 
-                # MiDaS is the single most expensive call in this loop, and
-                # depth changes far more slowly than the radar returns do. Refresh
-                # it every DEPTH_EVERY frames and keep folding in fresh radar
-                # every frame -- at city speed the scene shifts well under one 2 m
-                # grid cell between refreshes.
-                if step % DEPTH_EVERY == 0 or cached_disparity is None:
-                    cached_disparity = normalize_disparity(estimate_disparity(rgb))
-                grid = classify_grid(rgb, radar_pts, bev_cfg,
-                                      norm_disparity=cached_disparity)
-                result = pipeline.process(
-                    rgb=rgb, radar_pts=radar_pts, ego_speed=ego.get_velocity().length(),
-                    dt=dt, occlusion_grid=grid, detections=dets)
+                    # MiDaS is the single most expensive call in this loop, and
+                    # depth changes far more slowly than the radar returns do. Refresh
+                    # it every DEPTH_EVERY frames and keep folding in fresh radar
+                    # every frame -- at city speed the scene shifts well under one 2 m
+                    # grid cell between refreshes.
+                    if step % DEPTH_EVERY == 0 or cached_disparity is None:
+                        cached_disparity = normalize_disparity(estimate_disparity(rgb))
+                    grid = classify_grid(rgb, radar_pts, bev_cfg,
+                                          norm_disparity=cached_disparity)
+                    result = pipeline.process(
+                        rgb=rgb, radar_pts=radar_pts, ego_speed=ego.get_velocity().length(),
+                        dt=dt, occlusion_grid=grid, detections=dets)
 
-                n_flagged = 0
-                for obj in result.objects:
-                    flagged = uncertainty_flag(obj.uncertainty, DEFAULT_UNCERTAINTY_THRESHOLD)
-                    n_flagged += int(flagged)
+                    n_flagged = 0
+                    for obj in result.objects:
+                        flagged = uncertainty_flag(obj.uncertainty, DEFAULT_UNCERTAINTY_THRESHOLD)
+                        n_flagged += int(flagged)
 
-                    x1, y1, x2, y2 = [int(v) for v in obj.box_px]
-                    color = (0, 200, 0) if obj.cls == 0 else (0, 0, 220)
-                    cv2.rectangle(cam_panel, (x1, y1), (x2, y2), color, 4 if flagged else 3)
-                    if flagged:
-                        cv2.rectangle(cam_panel, (x1, y1), (x2, y2), (0, 165, 255), 1)
+                        x1, y1, x2, y2 = [int(v) for v in obj.box_px]
+                        color = (0, 200, 0) if obj.cls == 0 else (0, 0, 220)
+                        cv2.rectangle(cam_panel, (x1, y1), (x2, y2), color, 4 if flagged else 3)
+                        if flagged:
+                            cv2.rectangle(cam_panel, (x1, y1), (x2, y2), (0, 165, 255), 1)
 
-                    class_label = "Vehicle" if obj.cls == 0 else "Pedestrian"
-                    label = (f"{class_label}   Camera:{obj.confidence * 100:.0f}%   "
-                             f"Radar:{obj.radar_confidence * 100:.0f}%"
-                             + ("  <- NOT SURE" if flagged else ""))
-                    _label_with_background(cam_panel, label, (x1, max(50, y1 - 12)), color)
+                        class_label = "Vehicle" if obj.cls == 0 else "Pedestrian"
+                        label = (f"{class_label}   Camera:{obj.confidence * 100:.0f}%   "
+                                 f"Radar:{obj.radar_confidence * 100:.0f}%"
+                                 + ("  <- NOT SURE" if flagged else ""))
+                        _label_with_background(cam_panel, label, (x1, max(50, y1 - 12)), color)
 
-                    # Crossing probability, only where it means something: a
-                    # confirmed pedestrian track. Printing it for a parked car
-                    # would be noise.
-                    if obj.p_cross is not None and obj.cls == 1:
-                        risky = obj.p_cross_cautious >= 0.5
-                        _label_with_background(
-                            cam_panel, f"May step out: {obj.p_cross_cautious * 100:.0f}%",
-                            (x1, min(cam_panel.shape[0] - 8, y2 + 22)),
-                            (0, 80, 255) if risky else (200, 200, 200))
+                        # Crossing probability, only where it means something: a
+                        # confirmed pedestrian track. Printing it for a parked car
+                        # would be noise.
+                        if obj.p_cross is not None and obj.cls == 1:
+                            risky = obj.p_cross_cautious >= 0.5
+                            _label_with_background(
+                                cam_panel, f"May step out: {obj.p_cross_cautious * 100:.0f}%",
+                                (x1, min(cam_panel.shape[0] - 8, y2 + 22)),
+                                (0, 80, 255) if risky else (200, 200, 200))
 
-                # Hidden hazards -- tracked while completely invisible. This is
-                # the part no detector-driven display can show.
-                for _tid, em in result.hidden:
-                    if em.will_emerge and em.location_xy is not None:
+                    # Hidden hazards -- tracked while completely invisible. This is
+                    # the part no detector-driven display can show.
+                    for _tid, em in result.hidden:
+                        if em.will_emerge and em.location_xy is not None:
+                            _label_with_background(
+                                cam_panel,
+                                f"HIDDEN: someone may step out in {em.time_to_emerge_s:.1f}s "
+                                f"({em.probability * 100:.0f}%)",
+                                (20, 92), (0, 165, 255), font_scale=0.7)
+                    grid_panel = _render_grid_panel(grid, panel_size=cam_panel.shape[0])
+                    radar_panel = _render_radar_panel(radar_pts, panel_size=cam_panel.shape[0])
+
+                    total_width = cam_panel.shape[1] + grid_panel.shape[1] + radar_panel.shape[1] + 6  # +2 3px dividers
+                    title = _title_bar(total_width)
+                    ego_speed_kmh = 3.6 * (ego.get_velocity().length())
+                    fps_counter.append(time.time())
+                    measured_fps = (len(fps_counter) - 1) / max(fps_counter[-1] - fps_counter[0], 1e-6) if len(fps_counter) > 1 else 0.0
+                    status = _status_bar(title.shape[1], step, step * dt, ego_speed_kmh,
+                                          len(boxes), int((grid == OCCLUDED).sum()),
+                                          radar_confidence(radar_pts), n_flagged, measured_fps)
+
+                    # Risk banner. Drawn only from WARN upward, so the display stays
+                    # quiet when nothing is happening and a coloured bar actually
+                    # means something when it appears.
+                    if result.risk is not None and result.risk.action >= 2:
+                        top = result.risk.factors and max(result.risk.factors,
+                                                           key=lambda f: f.score)
+                        bar_colour = (0, 0, 200) if result.risk.action >= 3 else (0, 140, 230)
+                        cv2.rectangle(cam_panel, (0, 0), (cam_panel.shape[1], 34), bar_colour, -1)
                         _label_with_background(
                             cam_panel,
-                            f"HIDDEN: someone may step out in {em.time_to_emerge_s:.1f}s "
-                            f"({em.probability * 100:.0f}%)",
-                            (20, 92), (0, 165, 255), font_scale=0.7)
-                grid_panel = _render_grid_panel(grid, panel_size=cam_panel.shape[0])
-                radar_panel = _render_radar_panel(radar_pts, panel_size=cam_panel.shape[0])
+                            f"{result.risk.action_name}  risk {result.risk.score:.2f}"
+                            + (f"  --  {top.detail}" if top else ""),
+                            (12, 24), (255, 255, 255), font_scale=0.62)
 
-                total_width = cam_panel.shape[1] + grid_panel.shape[1] + radar_panel.shape[1] + 6  # +2 3px dividers
-                title = _title_bar(total_width)
-                ego_speed_kmh = 3.6 * (ego.get_velocity().length())
-                fps_counter.append(time.time())
-                measured_fps = (len(fps_counter) - 1) / max(fps_counter[-1] - fps_counter[0], 1e-6) if len(fps_counter) > 1 else 0.0
-                status = _status_bar(title.shape[1], step, step * dt, ego_speed_kmh,
-                                      len(boxes), int((grid == OCCLUDED).sum()),
-                                      radar_confidence(radar_pts), n_flagged, measured_fps)
+                    divider = np.full((cam_panel.shape[0], 3, 3), 90, dtype=np.uint8)
+                    combined = np.vstack([title, np.hstack([cam_panel, divider, grid_panel, divider, radar_panel]), status])
+                    cv2.imshow(WIN, combined)
+                    if step % 30 == 0:
+                        print(f"[frame {step}] detections={len(boxes)} flagged={n_flagged} "
+                              f"radar_conf={radar_confidence(radar_pts):.2f} "
+                              f"occluded_cells={int((grid == OCCLUDED).sum())}/400 fps={measured_fps:.1f} "
+                              f"| tracks={len(result.tracks)} hidden={len(result.hidden)} "
+                              f"risk={result.risk.score:.2f} {result.risk.action_name} "
+                              f"| health {result.health}", flush=True)
+                        import os
+                        if os.environ.get("LIVE_DEMO_SNAPSHOT_DIR"):
+                            cv2.imwrite(f"{os.environ['LIVE_DEMO_SNAPSHOT_DIR']}/snapshot_step{step:04d}.jpg", combined)
 
-                # Risk banner. Drawn only from WARN upward, so the display stays
-                # quiet when nothing is happening and a coloured bar actually
-                # means something when it appears.
-                if result.risk is not None and result.risk.action >= 2:
-                    top = result.risk.factors and max(result.risk.factors,
-                                                       key=lambda f: f.score)
-                    bar_colour = (0, 0, 200) if result.risk.action >= 3 else (0, 140, 230)
-                    cv2.rectangle(cam_panel, (0, 0), (cam_panel.shape[1], 34), bar_colour, -1)
-                    _label_with_background(
-                        cam_panel,
-                        f"{result.risk.action_name}  risk {result.risk.score:.2f}"
-                        + (f"  --  {top.detail}" if top else ""),
-                        (12, 24), (255, 255, 255), font_scale=0.62)
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
 
-                divider = np.full((cam_panel.shape[0], 3, 3), 90, dtype=np.uint8)
-                combined = np.vstack([title, np.hstack([cam_panel, divider, grid_panel, divider, radar_panel]), status])
-                cv2.imshow(WIN, combined)
-                if step % 30 == 0:
-                    print(f"[frame {step}] detections={len(boxes)} flagged={n_flagged} "
-                          f"radar_conf={radar_confidence(radar_pts):.2f} "
-                          f"occluded_cells={int((grid == OCCLUDED).sum())}/400 fps={measured_fps:.1f} "
-                          f"| tracks={len(result.tracks)} hidden={len(result.hidden)} "
-                          f"risk={result.risk.score:.2f} {result.risk.action_name} "
-                          f"| health {result.health}", flush=True)
-                    import os
-                    if os.environ.get("LIVE_DEMO_SNAPSHOT_DIR"):
-                        cv2.imwrite(f"{os.environ['LIVE_DEMO_SNAPSHOT_DIR']}/snapshot_step{step:04d}.jpg", combined)
-
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                step += 1
+            except (queue.Empty, RuntimeError) as exc:
+                # A dropped sensor frame or an actor CARLA's Traffic Manager
+                # destroyed mid-tick used to crash the whole demo -- the entire
+                # ~140-line tick body had no exception handling at all. Skip
+                # the bad tick and keep going; only give up if failures are
+                # sustained, which means the server died rather than one bad tick.
+                consecutive_failures += 1
+                print(f"  tick {step} failed: {exc} "
+                      f"({consecutive_failures}/{MAX_TICK_FAILURES} consecutive)", flush=True)
+                step += 1
+                if consecutive_failures >= MAX_TICK_FAILURES:
+                    print("  too many consecutive tick failures -- stopping", flush=True)
                     break
-
-            step += 1
+                continue
+            consecutive_failures = 0
     finally:
         cv2.destroyAllWindows()
         rig.destroy()
