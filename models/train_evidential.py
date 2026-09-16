@@ -1,10 +1,11 @@
-"""Phase 3: fine-tune the evidential confidence head on the Phase 2 pilot
-dataset's ground-truth detection crops.
+"""Phase 3: fine-tune the evidential confidence head on the recorded dataset's
+ground-truth detection crops (see `common.config` / CLAUDE.md for the current
+dataset -- data/raw_v2, 15,420 frames).
 
-Given the pilot dataset's size (~1,200 frames, not the spec's full 8,000),
-this is intentionally a short fine-tune -- enough to demonstrate the
-calibrated confidence + uncertainty behavior works, not a from-scratch
-detector training run.
+Quick-iteration trainer: plain Adam at a constant learning rate, saves the
+LAST epoch. `scripts/generate_report_figures.py:train_and_evaluate` is the
+trainer of record (adds cosine LR annealing, reports the converged mean
+rather than the best epoch) -- mirror any model/loss change there too.
 """
 import argparse
 import random
@@ -50,7 +51,11 @@ def episode_split(dataset, val_frac: float, seed: int = 0):
 
     val_idx = [i for i in range(len(dataset)) if dataset.episode_of(i) in val_episodes]
     train_idx = [i for i in range(len(dataset)) if dataset.episode_of(i) not in val_episodes]
-    return (torch.utils.data.Subset(dataset, train_idx),
+    # Augmentation applies ONLY to the train side -- validation must stay a
+    # deterministic read of the exact recorded crop, or accuracy stops
+    # measuring the model and starts measuring which random augmentation
+    # landed on which held-out sample.
+    return (AugmentedCrops(dataset, train_idx),
             torch.utils.data.Subset(dataset, val_idx),
             len(episodes) - n_val, n_val)
 
@@ -131,6 +136,46 @@ class CropDataset(Dataset):
         return tensor, cls
 
 
+class AugmentedCrops(Dataset):
+    """Train-time-only wrapper: random horizontal flip + mild brightness jitter.
+
+    Added because the trainer had NO augmentation at all -- every one of the
+    50,904 training crops was the raw recorded pixel data, once. With training
+    concentrated in 161 episodes (long, slow-changing sequences -- a walker
+    crossing over dozens of near-identical frames), that leaves generalisation
+    on the table for free: neither a vehicle nor a pedestrian crop has an
+    inherent left/right handedness, so a horizontal flip is a free additional
+    view with no risk of teaching a wrong invariance. Brightness jitter is a
+    coarse stand-in for the lighting variation a single-weather dataset cannot
+    otherwise provide (CARLA 0.10.0's weather API does not work on this build --
+    see docs/RESULTS.md).
+
+    Deliberately NOT wrapping the base CropDataset's `__getitem__` directly:
+    that would apply augmentation to validation crops too, since `episode_split`
+    hands out `Subset` views over the same underlying dataset object.
+    """
+    FLIP_PROB = 0.5
+    BRIGHTNESS_PROB = 0.5
+    BRIGHTNESS_RANGE = (0.8, 1.2)
+
+    def __init__(self, base: Dataset, indices: list[int]):
+        self.base = base
+        self.indices = indices
+        self.rng = np.random.default_rng()
+
+    def __len__(self) -> int:
+        return len(self.indices)
+
+    def __getitem__(self, i: int):
+        tensor, cls = self.base[self.indices[i]]
+        if self.rng.random() < self.FLIP_PROB:
+            tensor = torch.flip(tensor, dims=[2])  # width axis of (C, H, W)
+        if self.rng.random() < self.BRIGHTNESS_PROB:
+            factor = float(self.rng.uniform(*self.BRIGHTNESS_RANGE))
+            tensor = (tensor * factor).clamp(0.0, 1.0)
+        return tensor, cls
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", default="data/raw")
@@ -154,8 +199,8 @@ def main():
     print(f"Split by episode: {n_train_ep} train / {n_val_ep} val episodes "
           f"({len(train_set)} / {len(val_set)} crops) -- no episode appears in both.")
 
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=0)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=2, persistent_workers=True)
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, num_workers=2, persistent_workers=True)
 
     model = EvidentialDetector(num_classes=NUM_CLASSES).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)

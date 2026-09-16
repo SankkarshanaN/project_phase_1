@@ -85,8 +85,8 @@ def train_and_evaluate(device: str):
     train_set, val_set, n_train_ep, n_val_ep = episode_split(dataset, 0.15)
     print(f"  split by episode: {n_train_ep} train / {n_val_ep} val episodes "
           f"({len(train_set)} / {len(val_set)} crops)")
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
-    val_loader = DataLoader(val_set, batch_size=64, shuffle=False)
+    train_loader = DataLoader(train_set, batch_size=64, shuffle=True, num_workers=2, persistent_workers=True)
+    val_loader = DataLoader(val_set, batch_size=64, shuffle=False, num_workers=2, persistent_workers=True)
 
     model = EvidentialDetector(num_classes=NUM_CLASSES).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
