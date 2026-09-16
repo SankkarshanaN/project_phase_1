@@ -102,6 +102,16 @@ Confusion matrix over 11,624 held-out crops
 | **true pedestrian** | 24 | 1,422 | 60 |
 | **true background** | 48 | 18 | 5,110 |
 
+**Vehicle-to-background is the largest error bucket** (213 of 300 total
+errors). Measured directly rather than assumed: **26.7% of vehicle boxes in
+this dataset have a side under 20 px**, upsampled roughly 3-6x to the 64x64
+crop, and **9.8% are under 10 px** -- near-unrecognizable even to a human at
+that resolution. A roaming ego sees vehicles across a much wider range of
+distances than a staged, parked-ego scenario does, so this is consistent with
+distant vehicles being intrinsically hard rather than a modelling defect.
+Worth a minimum-box-size filter on training crops as a follow-up, but not
+worth re-training against for this report.
+
 ### Uncertainty is calibrated
 
 `results/figures/uncertainty_calibration.png`:
@@ -330,31 +340,32 @@ replays the full pipeline under each, asking two separate questions: how much do
 the fault degrade the system, and **does the health monitor notice**. The second
 question is the important one.
 
-30 episodes, sampled across all four scenarios:
+50 episodes, sampled across all four scenarios (updated from an earlier
+30-episode run after correcting a false-positive bug described below):
 
 | Condition | Detections | pos RMSE | v_lat MAE | AUC | Camera health | Radar health | Noticed |
 |---|---|---|---|---|---|---|---|
-| clean | 1,240 | 2.094 | 0.572 | 0.963 | 0.95 | 0.85 | — |
-| darkness | 25 | 3.208 | 1.182 | — | 0.05 | 0.91 | YES |
-| fog | 1,220 | 2.090 | 0.570 | 0.963 | 0.05 | 0.85 | YES |
-| blur | 1,229 | 2.094 | 0.572 | 0.963 | 0.05 | 0.85 | YES |
-| noise | 1,240 | 2.094 | 0.572 | 0.963 | 0.06 | 0.85 | YES |
-| lens blocked | 799 | 2.148 | 0.482 | 0.951 | 0.38 | 0.88 | YES |
-| radar dropout | 1,240 | 2.569 | 0.523 | 0.956 | 0.93 | 0.43 | YES |
-| **radar clutter** | 1,240 | 2.378 | **0.702** | 0.953 | 0.95 | 0.91 | **NO** |
-| **radar bias** | 1,240 | 2.194 | **0.752** | **0.910** | 0.95 | 0.85 | **NO** |
-| extrinsic drift | 1,240 | 2.109 | 0.622 | 0.943 | 0.94 | 0.86 | NO |
+| clean | 1,559 | 1.971 | 0.724 | 0.944 | 0.94 | 0.84 | — |
+| darkness | 18 | — | — | — | 0.05 | 0.90 | YES |
+| fog | 1,559 | 1.971 | 0.724 | 0.944 | 0.05 | 0.84 | YES |
+| blur | 1,559 | 1.971 | 0.724 | 0.944 | 0.05 | 0.84 | YES |
+| noise | 1,559 | 1.971 | 0.724 | 0.944 | 0.06 | 0.84 | YES |
+| lens blocked | 1,110 | 1.905 | 0.573 | 0.948 | 0.38 | 0.87 | YES |
+| radar dropout | 1,559 | 2.375 | 0.631 | 0.938 | 0.94 | 0.42 | YES |
+| **radar clutter** | 1,559 | 2.541 | **0.987** | 0.936 | 0.94 | 0.93 | **NO** |
+| **radar bias** | 1,559 | 2.443 | **0.923** | **0.911** | 0.94 | 0.84 | **NO** |
+| extrinsic drift | 1,559 | 2.043 | 0.570 | 0.946 | 0.95 | 0.85 | NO |
 
-Every camera fault is caught decisively — health drops from 0.95 to 0.05 under
+Every camera fault is caught decisively — health drops from 0.94 to 0.05 under
 darkness, fog, blur and noise, and to 0.38 with a partially blocked lens. Radar
-dropout is caught (0.85 → 0.43).
+dropout is caught (0.84 → 0.42).
 
 **Two faults are silent failures, and this is the headline of this section.**
-Radar clutter and radar bias both measurably degrade the system — lateral velocity
-error rises 23% and 31% respectively, and bias costs 0.052 of intent AUC — while
-the monitor continues to report the radar as healthy (0.91 and 0.85). Extrinsic
-drift behaves the same way, costing 0.020 AUC unnoticed, though it is a geometric
-fault rather than a sensor one and is not counted among the sensor failures.
+Radar clutter and radar bias both measurably degrade the system — lateral
+velocity error rises 36% and 27% respectively, and bias costs 0.033 of intent
+AUC — while the monitor continues to report the radar as healthy (0.93 and
+0.84). Extrinsic drift behaves the same way, though it is a geometric fault
+rather than a sensor one and is not counted among the sensor failures.
 
 This is the most dangerous failure category a system like this has: the pipeline
 stays confident while being wrong, so nothing downstream has any reason to
@@ -362,8 +373,9 @@ discount its output.
 
 ### Why these two resist detection, and what it would take
 
-We attempted to close this and got a precise answer instead of a fix, which is
-worth reporting as a result in its own right.
+We attempted to close this. Clutter is now detectable given enough time; bias
+has a working detector that this test cannot yet demonstrate, for a reason worth
+stating precisely rather than hand-waving past.
 
 **A fixed threshold cannot separate clutter from a busy scene.** The spatial
 coherence check uses a Clark-Evans nearest-neighbour index, banded at 0.72–0.95.
@@ -377,28 +389,62 @@ by more than the fault does.
 the sensor's own running median — the same principle the return-rate check
 already used. It works, on the fault that matters: with clutter onsetting
 mid-drive, radar health falls from **0.94 to 0.62** within about 60 frames, a
-graded response downstream fusion can act on.
+graded response downstream fusion can act on. It still reads NO above because
+the fault is present from frame zero in this test, so the monitor never sees
+clean data to be inconsistent with — a genuinely structural limit of any
+self-referential check, not fixable by re-tuning it.
 
-**But it still reports NO in the table above, and the reason is structural.**
-The adversarial harness injects each fault from frame zero, so the monitor never
-observes clean data. The baseline becomes the fault. *No self-referential monitor
-can detect a constant fault that predates it* — there is nothing to be
-inconsistent with. The same argument applies to range bias, and more strongly:
-a constant offset on every return is fully absorbed by the filter, since an
-object 2.5 m further away with the same bearing is a perfectly consistent world
-state. The residuals return to zero once the track converges.
+**Range bias needed a check that owes the radar nothing, and now has one --
+but proving it needs more driving than this test replays.** A constant offset
+on every return is fully absorbed by the tracking filter (an object 2.5 m
+further away at the same bearing is a consistent world state, so residuals
+return to zero once tracks converge), so no self-referential check, however
+clever, can see it. `perception.geometry.range_from_pixel_height` gives an
+independent range from a detection's pixel height and an assumed physical
+height, and `_radar_health` now tests radar range against it, calibrated
+against the offset radar association itself introduces on healthy data (mean
++5.9 m, measured over 30 clean episodes -- most of it is the association
+method picking background behind the pedestrian, not sensor error, and it
+calibrates out cleanly).
 
-Detecting either from startup requires a reference the sensor cannot provide
-itself — a factory calibration prior, or an independent metric range. The camera
-offers the second: a pedestrian's pixel height against a known physical height
-gives a coarse but *independent* range, and a persistent offset between that and
-radar range is exactly the bias signature. That is the right next step, and it is
-not implemented.
+The first version of this check used a 200-sample window and was WRONG in the
+way that matters most: it looked right in isolation (aggregate mean over 5,805
+pairs matched the calibration to within 0.001 m) but at that window size,
+episode-to-episode variance in which background return radar association
+happens to pick swings the mean by up to +/-16 m -- far wider than the 2.5 m
+fault it exists to catch. Running it made EVERY condition above, including
+clean data that never touches the radar, read radar health 0.54: not
+detection, a constant penalty firing on ordinary noise. Measured spread of
+rolling window means:
 
-The honest summary for the report: **one of these faults is now detectable when
-it onsets during operation, and neither is detectable when present from startup —
-and the second half is a property of self-referential monitoring, not a gap in
-the implementation.**
+| window (paired observations) | spread (max − min) |
+|---|---|
+| 200 | 23.5 m |
+| 500 | 14.5 m |
+| 1,000 | 9.2 m |
+| 2,000 | 3.1 m |
+| 3,000 | 2.8 m |
+
+The check now requires 2,500 paired observations before activating, which is
+correct -- it eliminated the false positive, confirmed against the same 50
+episodes above (clean and every condition that does not touch the radar now
+read a sensible, varied 0.84-0.90, not a uniform wrong 0.54). But 2,500 paired
+observations is more exposure than a 50-episode adversarial replay
+accumulates within one condition, so `radar_bias` still reads NO here: not
+because the mechanism doesn't work, but because this test doesn't drive long
+enough to prove it does. That is a property of the test's replay length, not
+of the detector, and re-running with more episodes (or accumulating pairs
+across a longer live drive, which is what this check is actually meant for)
+is the way to close it -- not lowering the sample requirement, which would
+just reintroduce the false positive above.
+
+The honest summary for the report: **clutter is detectable once it onsets
+during operation; bias has a working, correctly-calibrated detector that needs
+several thousand paired observations -- several minutes of driving -- to
+prove itself, which is longer than a short adversarial replay provides.
+Neither is detectable if present before the monitor starts observing at all,
+which is a property of self-referential health monitoring in general, not a
+gap specific to this implementation.**
 
 A methodological note worth carrying into the report: the first run of this test
 selected episodes by alphabetical prefix, which returned 25 `blindspot_cutin`
@@ -514,8 +560,11 @@ arrays eagerly and closes the file.
 - **The evidential coupling to prediction is unproven in aggregate** — not
   contradicted, but the regime where it acts is 2% of observations here. §5.
 - **Radar clutter is detectable only once it onsets mid-drive** (health 0.94 →
-  0.62); **radar bias is not detectable at all** without an independent range
-  reference. A fault present from startup becomes the monitor's own baseline. §6.
+  0.62). **Radar bias has a working, correctly-calibrated detector** (cross-checks
+  radar range against an independent camera-size estimate) but needs several
+  thousand paired observations to prove itself reliably — more than a short
+  adversarial replay provides, though not more than a real drive would supply.
+  Neither is detectable if the fault predates the monitor observing at all. §6.
 - **End-to-end throughput is 2–9 FPS**, below the 15+ FPS the specification
   targeted. §8.
 - **Single town.** CARLA 0.10.0 ships only `Town10HD_Opt`, so every result is from

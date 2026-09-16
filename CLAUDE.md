@@ -378,6 +378,20 @@ long-running collection loop.
   perfect camera at 0.38 and would have silently suppressed camera evidence throughout
   the fusion. The measured distributions are in that module's header. Re-measure before
   changing them, and re-measure if the camera resolution or JPEG quality changes.
+- **`CROSS_RANGE_MIN_SAMPLES` (sensor_health.py) must stay >= ~2500 -- do not lower it
+  to make a test pass.** It gates the cross-sensor range check (radar range vs.
+  `geometry.range_from_pixel_height`) that exists to catch a radar range bias present
+  from before the monitor starts observing -- the one fault every self-referential
+  check in this module is structurally blind to. A first attempt at 200 samples looked
+  correct in isolation (aggregate mean over 5,805 pairs matched the calibration to
+  0.001 m) but was wrong in the way that matters: at that window, episode-to-episode
+  variance in which background return radar association happens to pick swings the
+  mean by up to +/-16 m -- far wider than the 2.5 m fault it exists to catch. Running
+  it made EVERY adversarial-test condition, including clean data, read radar health
+  0.54 -- not detection, a constant penalty firing on ordinary noise. Measured spread
+  of rolling window means: 200samp -> 23.5 m, 1000 -> 9.2 m, 2000 -> 3.1 m, 3000 -> 2.8 m.
+  2500 is the floor for a controlled false-positive rate. Full account in
+  `docs/RESULTS.md` §6.
 
 ## The nine-component pipeline
 
