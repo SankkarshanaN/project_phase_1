@@ -486,15 +486,15 @@ Two components are load-bearing in ways that aren't obvious from their names:
   zero), fused 0.13. The `_jacobian` range-rate row is where this lives.
 - **Ablation modes must be compared on shared observations, not aggregate means.**
   Camera-only, radar-only and fused each hold tracks on a *different* subset of
-  actors -- measured on the v2 dataset, 3,158 / 2,248 / 3,185 moving observations
-  with only 578 tracked by all three. Their aggregate MAEs are therefore computed
-  over different populations of different difficulty, and comparing them reverses
-  the result: unpaired, fused looks worse than camera on lateral velocity (1.038
-  vs 0.973); paired on the same objects and frames, fused is clearly better
-  (0.711 vs 0.865, radar 1.599). `evaluate_prediction._print_paired` is the
-  headline table for that reason. Keep the unpaired table too -- how many objects
-  a configuration can track at all is a real property -- but never quote it as an
-  estimation-accuracy comparison.
+  actors -- measured on the current v2 dataset (recollected 2026-09-16), 3,665 /
+  2,491 / 3,065 moving observations with only 845 tracked by all three. Their
+  aggregate MAEs are therefore computed over different populations of different
+  difficulty, and comparing them reverses the result: unpaired, fused looks worse
+  than camera on lateral velocity (0.963 vs 0.857); paired on the same objects and
+  frames, fused is clearly better (0.672 vs 0.819, radar 1.683).
+  `evaluate_prediction._print_paired` is the headline table for that reason. Keep
+  the unpaired table too -- how many objects a configuration can track at all is a
+  real property -- but never quote it as an estimation-accuracy comparison.
 
 - **Inflating covariance by classifier uncertainty does NOT make a prediction more
   cautious.** Widening a distribution pushes its probability toward 0.5, so where the

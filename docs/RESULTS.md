@@ -573,8 +573,9 @@ no degradation, at comparable throughput to the first run's measured
 4.8–8.1 frames/s across eight chunks (~45 minutes).
 
 **File handles are a real constraint at this dataset size.** `np.load` on an
-`.npz` returns a lazy handle that stays open; holding one per frame across 15,420
-frames exhausts the process limit and kills the run with `OSError [Errno 24]`.
+`.npz` returns a lazy handle that stays open; holding one per frame across
+15,000+ frames exhausts the process limit and kills the run with
+`OSError [Errno 24]`.
 This surfaced independently in three scripts, because the lazy object looks and
 behaves exactly like a dict at the call site. `common/npz_io.load_npz` reads the
 arrays eagerly and closes the file.
