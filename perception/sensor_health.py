@@ -36,15 +36,31 @@ and flooding), rate stability, and a residual-based calibration-drift test.
 Cross-sensor: sustained disagreement, which says one sensor is wrong without
 saying which -- so it lowers confidence in both, correctly.
 
-Known limitation
-----------------
-A constant radar **range bias** remains the hardest fault to catch. It produces
-the normal number of returns, perfectly stable, at plausible distances, simply
-all wrong by a fixed offset. The innovation test below catches it while tracks
-are initialising, but a converged filter absorbs a constant bias into its state
-and the residuals return to zero -- the bias becomes unobservable without an
-independent range reference. `scripts/adversarial_test.py` reports this rather
-than hiding it.
+Known limitations
+-----------------
+A constant radar **range bias** is the hardest fault class here, for a precise
+reason: a converged tracking filter absorbs a constant offset into its state
+(an object 2.5 m further away at the same bearing is a perfectly consistent
+world), so the filter's own residuals return to zero and the innovation test
+below cannot see it once a track has settled. The fix is the cross-sensor
+range check further down (`CROSS_RANGE_MIN_SAMPLES` and around it) -- radar
+range compared against an estimate from camera object size, which owes the
+radar nothing. It is correctly calibrated (verified: mean offset 5.901 m
+against a 5.9 m calibration, deviation 0.001 m over 5,805 pairs) but needs
+several thousand paired observations for a safe false-positive rate, which is
+more exposure than a short adversarial replay accumulates within one
+condition -- see that check's own comments and `docs/RESULTS.md` SS6 for the
+full account, including the false-positive bug in an earlier, smaller-window
+version of it.
+
+Radar **clutter** is the other hard case: a fixed absolute threshold cannot
+separate it from a merely busy scene (clean driving already scores close to
+where injected clutter lands), so it needs the sensor's own relative running
+norm rather than an absolute band -- see `INCOHERENCE_RISE_RATIO` below. That
+relative check works once clutter onsets during a drive, but like every
+self-referential check in this module, it cannot see a fault present before
+it starts observing -- there is nothing yet to be inconsistent with. Neither
+limitation is hidden; `scripts/adversarial_test.py` reports both.
 """
 import math
 from collections import deque

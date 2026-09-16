@@ -270,7 +270,7 @@ class HiddenHazardTracker:
         p = self.particles.copy()
         w = self.weights.copy()
 
-        emerged_mass, times, locations = 0.0, [], []
+        emerged_mass, weighted_time, locations = 0.0, 0.0, []
         still_hidden = np.ones(self.n, dtype=bool)
 
         for step in range(1, int(horizon_s / dt) + 1):
@@ -287,10 +287,21 @@ class HiddenHazardTracker:
 
             newly = visible & still_hidden
             if newly.any():
-                emerged_mass += float(w[newly].sum())
-                times.extend([step * dt] * int(newly.sum()))
+                step_mass = float(w[newly].sum())
+                emerged_mass += step_mass
+                # Weighted by particle mass, not particle COUNT -- a mode with
+                # ten low-weight particles must not outvote one high-weight
+                # particle. This was previously `times.extend([step*dt] *
+                # count)` then `np.mean(times)`, an unweighted average that
+                # silently ignored belief mass entirely: two particles
+                # emerging at steps 1 and 30 with weights 0.9/0.1 averaged to
+                # 1.55s (roughly the midpoint) instead of the mass-weighted
+                # 0.39s (dominated by the heavy, early-emerging particle) --
+                # a 4x error in exactly the number this component exists to
+                # report accurately.
+                weighted_time += step * dt * step_mass
                 locations.append(np.average(p[newly, :2], axis=0,
-                                             weights=w[newly]) * w[newly].sum())
+                                             weights=w[newly]) * step_mass)
                 still_hidden &= ~newly
 
         if emerged_mass < 1e-6:
@@ -299,7 +310,7 @@ class HiddenHazardTracker:
         loc = np.sum(locations, axis=0) / emerged_mass
         return EmergencePrediction(
             will_emerge=emerged_mass > 0.25,
-            time_to_emerge_s=float(np.mean(times)),
+            time_to_emerge_s=float(weighted_time / emerged_mass),
             location_xy=(float(loc[0]), float(loc[1])),
             probability=float(emerged_mass),
             modes=self.mode_masses(),

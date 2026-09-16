@@ -91,6 +91,29 @@ if pred.will_emerge:
     check("emergence time within horizon", 0 < pred.time_to_emerge_s <= 3.0,
           f"{pred.time_to_emerge_s:.2f}s")
 
+print("\n3b. Emergence time is weighted by belief MASS, not particle count")
+# Regression test for a real bug: `time_to_emerge_s` was computed as an
+# unweighted mean over emergence step-times (once per emerging particle),
+# ignoring `self.weights` entirely -- inconsistent with `location_xy` and
+# `probability`, which ARE mass-weighted. A heavy, fast-emerging particle and
+# a light, slow-emerging one should average close to the heavy one's time,
+# not the arithmetic midpoint.
+pf2 = HiddenHazardTracker(init_xy=(16.0, 2.0), init_vel=(0.0, 0.0), n_particles=2)
+pf2.particles = np.array([[16.0, 2.0, 20.0, 0.0],     # fast: exits in ~0.3s
+                           [16.0, 2.0, 3.0, 0.0]])      # slow: exits in ~2.0s
+pf2.weights = np.array([0.9, 0.1])                      # heavy on the FAST one
+pred2 = pf2.predict_emergence(grid, GRID_CFG, horizon_s=3.0)
+print(f"     {pred2}")
+unweighted_midpoint = (0.3 + 2.0) / 2   # what the old, buggy code effectively computed
+mass_weighted_expect = 0.9 * 0.3 + 0.1 * 2.0
+check("closer to the mass-weighted expectation than the naive midpoint",
+      abs(pred2.time_to_emerge_s - mass_weighted_expect)
+      < abs(pred2.time_to_emerge_s - unweighted_midpoint),
+      f"got {pred2.time_to_emerge_s:.2f}s, mass-weighted~{mass_weighted_expect:.2f}s, "
+      f"midpoint~{unweighted_midpoint:.2f}s")
+check("dominated by the heavy particle's early emergence, not pulled toward 1.15s",
+      pred2.time_to_emerge_s < 0.7, f"{pred2.time_to_emerge_s:.2f}s")
+
 print("\n4. THE POINT: a Gaussian cannot represent this, a particle set can")
 # Force a genuinely bimodal situation: half continue right, half reverse left.
 pf2 = HiddenHazardTracker(init_xy=(16.0, 0.0), init_vel=(0.0, -1.4),

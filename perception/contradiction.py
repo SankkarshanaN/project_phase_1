@@ -37,7 +37,6 @@ justified to a human rather than asserted.
 import math
 from dataclasses import dataclass, field
 
-from carla_tools.occlusion_tiers import OCCLUDED as TIER_OCCLUDED
 from perception.occlusion_grid import EMPTY, OCCLUDED, UNKNOWN, VISIBLE
 
 # Prior probability that any given watched region contains a real hazard.

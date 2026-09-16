@@ -2,6 +2,14 @@
 
 Tag ids per CARLA 0.9.16 docs (CityScapesPalette + extensions):
 https://carla.readthedocs.io/en/0.9.16/ref_sensors/#semantic-segmentation-camera
+-- NOT re-verified against 0.10.0's actual semseg camera output, because
+`to_macro_classes` below is currently dead code (grep the repo: nothing calls
+it). `carla_tools/true_occupancy.py` only imports the class CONSTANTS
+(UNLABELED/VEHICLE/PEDESTRIAN) from this module; it builds ground truth
+directly from each actor's `type_id` string, never from a semseg image or
+this tag LUT. If something starts calling `to_macro_classes` against a real
+0.10.0 semseg camera, re-verify every tag id here first -- don't assume the
+0.9.16 mapping carried over.
 """
 import numpy as np
 
