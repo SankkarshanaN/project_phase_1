@@ -71,6 +71,9 @@ COCO_PERSON, COCO_CAR, COCO_BUS, COCO_TRUCK = 0, 2, 5, 7
 COCO_TO_OURS = {COCO_PERSON: 1, COCO_CAR: 0, COCO_BUS: 0, COCO_TRUCK: 0}  # -> vehicle=0, pedestrian=1
 CLASS_NAMES = {0: "vehicle", 1: "pedestrian"}
 
+# Must match models.evidential_classifier: 0=vehicle, 1=pedestrian, 2=background.
+CLASS_BACKGROUND = 2
+
 N_BACKGROUND_VEHICLES = 15
 N_BACKGROUND_WALKERS = 15
 N_STATIC_OCCLUDERS = 6
@@ -412,18 +415,30 @@ def main():
 
                     cam_cfg = bev_cfg["camera"]
                     boxes = results.boxes.xyxy.cpu().numpy()
-                    coco_classes = results.boxes.cls.cpu().numpy().astype(int)
 
                     # Run the full framework on this frame. YOLO has already been
                     # called above for the panel, so its boxes are handed in rather
                     # than letting the pipeline detect again -- one inference per
                     # frame, not two.
+                    #
+                    # YOLO's own COCO class (person/car/bus/truck, already
+                    # filtered at predict() time above) is used only to decide
+                    # which boxes are worth scoring at all -- the evidential
+                    # head's own argmax then decides vehicle/pedestrian/
+                    # background, not YOLO's forced label. A box the head
+                    # believes is background is dropped rather than kept under
+                    # YOLO's class at a low, unflagged confidence. See
+                    # perception.pipeline.PerceptionPipeline._detect's
+                    # docstring for the false positive (a van window read as
+                    # a pedestrian) this closes.
                     dets = []
-                    for box, coco_cls in zip(boxes, coco_classes):
-                        our_cls = COCO_TO_OURS.get(coco_cls, 0)
+                    for box in boxes:
                         probs, uncertainty = score_crop(evidential, device, rgb, box)
-                        dets.append((tuple(float(v) for v in box), our_cls,
-                                      float(probs[0, our_cls]), uncertainty))
+                        best = int(probs[0].argmax())
+                        if best == CLASS_BACKGROUND:
+                            continue
+                        dets.append((tuple(float(v) for v in box), best,
+                                      float(probs[0, best]), uncertainty))
 
                     # MiDaS is the single most expensive call in this loop, and
                     # depth changes far more slowly than the radar returns do. Refresh

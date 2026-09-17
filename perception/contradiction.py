@@ -89,6 +89,18 @@ VRU_RADAR_PENALTY = 0.55
 
 CONFLICT_THRESHOLD = 0.35   # how far apart the two sensors must be to "contradict"
 
+# Below this, a sensor's non-detection is explained as "it couldn't be trusted
+# right now" rather than "possible clutter" / "expected, nothing there" --
+# matches sensor_health.HealthReport's own DEGRADED cutoff (0.6) so the
+# explanation text agrees with the status the dashboard already shows. Found
+# live: in darkness (camera health ~0.05), a radar-only return in an otherwise
+# VISIBLE cell printed "possible clutter" -- true mechanically (the posterior
+# math already discounts the blind camera correctly, via cam_reliability), but
+# a misleading explanation, since the real reason is a blinded camera, not a
+# noisy radar return.
+CAMERA_HEALTH_UNRELIABLE = 0.6
+RADAR_HEALTH_UNRELIABLE = 0.6
+
 
 @dataclass
 class SensorEvidence:
@@ -231,18 +243,33 @@ def resolve(evidence: SensorEvidence, prior: float = DEFAULT_PRIOR) -> Resolutio
         explanation = "camera and radar agree"
     elif evidence.camera_detected and not evidence.radar_detected:
         trusted = "camera"
-        explanation = ("camera sees it, radar does not -- expected for a "
-                        "pedestrian" if evidence.is_vru else
-                        "camera sees it, radar does not")
+        if evidence.radar_health < RADAR_HEALTH_UNRELIABLE:
+            explanation = (f"camera sees it, radar does not -- but radar health "
+                            f"is low ({evidence.radar_health:.2f}) right now, so "
+                            f"its silence is discounted rather than read as "
+                            f"'nothing there'")
+            reasons.append(f"radar health is low ({evidence.radar_health:.2f}): "
+                            "radar non-detection is not treated as evidence of "
+                            "absence")
+        else:
+            explanation = ("camera sees it, radar does not -- expected for a "
+                            "pedestrian" if evidence.is_vru else
+                            "camera sees it, radar does not")
     elif evidence.radar_detected and not evidence.camera_detected:
+        trusted = "radar"
         if state == OCCLUDED:
-            trusted = "radar"
             explanation = ("radar sees something the camera cannot -- the view "
                             "is blocked, so camera silence proves nothing")
             reasons.append("cell is OCCLUDED: camera non-detection is "
                             "uninformative and is discounted")
+        elif evidence.camera_health < CAMERA_HEALTH_UNRELIABLE:
+            explanation = (f"radar sees something the camera cannot -- camera "
+                            f"health is low ({evidence.camera_health:.2f}) right "
+                            f"now, so its silence proves nothing")
+            reasons.append(f"camera health is low ({evidence.camera_health:.2f}): "
+                            "camera non-detection is not treated as evidence of "
+                            "a clear cell")
         else:
-            trusted = "radar"
             explanation = "radar-only return in a viewable cell -- possible clutter"
     else:
         trusted = "neither"

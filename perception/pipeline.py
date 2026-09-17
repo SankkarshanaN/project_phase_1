@@ -75,6 +75,10 @@ from perception.tracking import Detection, MultiObjectTracker
 # COCO ids YOLOv8n was pretrained on that matter here, mapped onto our classes.
 COCO_TO_OURS = {0: 1, 2: 0, 5: 0, 7: 0}     # person -> VRU, car/bus/truck -> vehicle
 
+# Must match models.evidential_classifier's convention: 0=vehicle, 1=pedestrian,
+# 2=background. See _detect's docstring for why this constant exists at all.
+CLASS_BACKGROUND = 2
+
 # Frames a confirmed track may go unmeasured before it is handed to the
 # particle filter. Two is enough to distinguish a genuine occlusion from a
 # single dropped detection, without losing so much time that the seed state is
@@ -152,7 +156,24 @@ class PerceptionPipeline:
     # ------------------------------------------------------------- detection
 
     def _detect(self, rgb):
-        """YOLO proposals re-scored by the evidential head.
+        """YOLO proposals re-scored -- and reclassified -- by the evidential head.
+
+        YOLO supplies the box and a candidate class (person -> pedestrian,
+        car/bus/truck -> vehicle); the evidential head then decides what the
+        crop actually is among vehicle/pedestrian/background, and its own
+        belief wins, not YOLO's forced label. Previously the code kept YOLO's
+        class regardless and only reported the head's confidence *for that
+        class* -- so a confidently-wrong YOLO box (observed live: a van's
+        rear window read as a person) would display as "Pedestrian" at a low
+        but non-zero confidence, pass the uncertainty check (the head can be
+        quite certain it's background, which is low *uncertainty*, while
+        still being a low *confidence-for-pedestrian*), and flow into
+        tracking and the crossing-intent predictor as a confirmed VRU. A box
+        the head's own argmax calls background is now dropped instead of kept
+        under YOLO's label -- this is what "YOLO answers *where*, our head
+        answers *what and how sure*" (see CLAUDE.md) actually requires; before
+        this fix the head was only ever asked to confirm YOLO's answer, never
+        allowed to overrule it.
 
         Returns [(box, cls, confidence, uncertainty)]. Empty if no detector is
         configured -- callers doing offline replay supply boxes directly.
@@ -169,10 +190,10 @@ class PerceptionPipeline:
         out = []
         for box, coco in zip(results.boxes.xyxy.cpu().numpy(),
                               results.boxes.cls.cpu().numpy().astype(int)):
-            cls = COCO_TO_OURS.get(int(coco))
-            if cls is None:
+            yolo_cls = COCO_TO_OURS.get(int(coco))
+            if yolo_cls is None:
                 continue
-            conf, unc = 0.5, 0.5
+            cls, conf, unc = yolo_cls, 0.5, 0.5
             if self.evidential is not None:
                 import cv2
                 x1, y1, x2, y2 = (int(v) for v in box)
@@ -183,7 +204,10 @@ class PerceptionPipeline:
                     with torch.no_grad():
                         alpha, u = self.evidential(t)
                         probs = EvidentialHead.expected_probability(alpha)[0]
-                    conf, unc = float(probs[cls]), float(u.item())
+                    best = int(probs.argmax())
+                    if best == CLASS_BACKGROUND:
+                        continue    # the head disagrees this is an object at all
+                    cls, conf, unc = best, float(probs[best]), float(u.item())
             out.append((tuple(float(v) for v in box), cls, conf, unc))
         return out
 
