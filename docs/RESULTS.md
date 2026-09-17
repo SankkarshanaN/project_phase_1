@@ -172,17 +172,28 @@ between collections.)
 ## 3. Three-state occlusion detector (BEV)
 
 Runtime path only: MiDaS relative disparity + radar, never CARLA's depth buffer.
-Validated against the ground-truth grid over 200 sampled frames (80,000 cells),
-**against the corrected camera projection** (see the front-matter note).
+Validated against the ground-truth grid, **against the corrected camera
+projection** (see the front-matter note).
 
-At the default `shadow_tolerance = 0.12`:
+**Status as of 2026-09-17: this is no longer the pipeline's weakest
+component.** Two rounds of measurement below: first the honest collapse the
+projection fix caused (precision 0.979 / recall 0.173 at the old 0.12
+default), then a real fix to the detector itself that recovers most of the
+lost recall (precision 0.727 / recall **0.917** at the new default). Both are
+kept in full because the second number only means something in light of the
+first -- this was not a small tuning nudge, it reverses the "occlusion
+detector is fundamentally weak" conclusion the projection-bug section below
+first established.
+
+At the (now historical) default `shadow_tolerance = 0.12`, over 200 sampled
+frames (80,000 cells):
 
 | Metric (OCCLUDED class) | Value |
 |---|---|
 | Precision | 0.979 |
-| Recall | **0.173** |
+| Recall | 0.173 |
 | F1 | 0.293 |
-| Overall cell agreement (4 states) | **0.568** |
+| Overall cell agreement (4 states) | 0.568 |
 
 Per-scenario agreement: `blindspot_cutin` 0.627, `occluded_pedestrian_crossing`
 0.586, `multi_occlusion` 0.568, `urban_crossing` 0.540.
@@ -223,28 +234,69 @@ weaker than previously believed.
 ### The threshold sweep, re-run against the corrected ground truth
 
 `scripts/sweep_shadow_tolerance.py`, 150 frames, 60,000 cells per setting
-(`results/figures/shadow_tolerance_sweep.png`):
+(`results/figures/shadow_tolerance_sweep.png`), **at the OLD `GROUND_QUANTILE
+= 0.30`** (see the next section for why this quantile itself turned out to be
+the real problem):
 
 | `shadow_tolerance` | Precision | Recall | F1 |
 |---|---|---|---|
-| **0.02 (best F1)** | 0.842 | **0.479** | **0.610** |
+| **0.02 (best F1 at this quantile)** | 0.842 | 0.479 | 0.610 |
 | 0.04 | 0.896 | 0.368 | 0.522 |
 | 0.06 | 0.935 | 0.301 | 0.455 |
 | 0.08 | 0.959 | 0.256 | 0.404 |
-| 0.12 (previous default) | 0.978 | 0.194 | 0.323 |
+| 0.12 (original default) | 0.978 | 0.194 | 0.323 |
 | 0.16 | 0.989 | 0.141 | 0.247 |
 | 0.22 | 0.998 | 0.076 | 0.141 |
 | 0.30 | 0.998 | 0.030 | 0.059 |
 | 0.40 | 1.000 | 0.011 | 0.022 |
 
-**This is not an operating-point problem either.** Maximum achievable recall
-across the whole threshold range is 0.479 -- still well under half of real
-occlusion, at any tolerance. The default (`DEFAULT_SHADOW_TOLERANCE` in
-`perception/occlusion_grid.py`) is moved to **0.02**, the best-F1 point, since
-at this component's current accuracy level the previous reasoning for a
-conservative default (false alarms cost more than a small F1 gap) no longer
-applies -- the gap between operating points is now large, and 0.12's recall
-(0.194) is too low to be a usable safety signal regardless of its precision.
+At the time this table was produced it looked like the ceiling: no threshold
+on this curve broke 0.48 recall. That conclusion turned out to be scoped to
+one hyperparameter that was never swept -- see below.
+
+### The real fix: `GROUND_QUANTILE` was the bottleneck, not just `shadow_tolerance`
+
+`_ground_profile` estimates "what does clear ground read as" per range ring
+by taking a low quantile (`GROUND_QUANTILE`, was 0.30) of that ring's sampled
+disparity. The corrected ground truth changes what that estimate is actually
+being computed from: with a typical urban ring now 68-94% genuinely occluded
+(previous section), a ring's *bottom*-30th-percentile disparity is often
+still estimated mostly from occluded pixels, not genuine ground -- nearer
+objects read at *higher* disparity, so a majority-occluded ring drags even
+its low quantile upward. The fitted "ground" level ends up nearer than real
+ground, which is exactly the direction that suppresses recall: real occluded
+cells no longer read far enough above the (inflated) ground estimate to
+clear `shadow_tolerance`.
+
+A much lower quantile is far more robust to that contamination -- it grabs
+whatever thin sliver of genuinely-visible distant ground survives in a ring
+even when most of it is blocked. Swept jointly with `shadow_tolerance` on
+2026-09-17: first a coarse grid on 120 frames to locate the right region,
+confirmed on a disjoint 150-frame held-out sample with zero overlapping
+frames (to rule out overfitting to one sample), then finalized with the
+official 150-frame sweep at the new quantile:
+
+| `GROUND_QUANTILE` | `shadow_tolerance` | Precision | Recall | F1 | Cell agreement |
+|---|---|---|---|---|---|
+| 0.30 (old) | 0.02 (old) | 0.846 | 0.482 | 0.614 | 0.686 |
+| 0.01 | 0.001 | 0.727 | 0.893 | 0.811 | 0.774 |
+| **0.01 (new default)** | **0.001 (new default)** | **0.727** | **0.917** | **0.811** | **0.780** |
+
+(The middle row is the disjoint held-out check; the bottom row is the
+official 150-frame sweep at the final chosen point -- the two land within
+0.02 of each other on every metric, which is what makes this a real
+improvement rather than a sample-specific fluke.)
+
+**Recall very nearly doubles (0.482 to 0.917, +90% relative) for a precision
+cost of about 0.12.** This is a deliberate trade given the brief: a detector
+feeding a "something might be hiding here" signal is more useful catching 92%
+of real occlusion at 73% precision than catching 48% at 85% precision, and
+the previous conservative-default reasoning (false alarms cost more than a
+small F1 gap) stops applying once the missed-recall side of that trade is
+this large. Both constants live in `perception/occlusion_grid.py`
+(`GROUND_QUANTILE`, `DEFAULT_SHADOW_TOLERANCE`) with the full sweep numbers
+in their comments; they were fit as a pair and should be re-measured together,
+not independently, if changed again.
 
 ### Historical note: the marching-vs-ground-profile comparison
 
@@ -255,10 +307,13 @@ spent its first cell as an unrecoverable trend seed) to `_ground_profile`'s
 per-range-ring quantile fit raised recall to 0.629 against that same ground
 truth. **That comparison remains valid as a statement about which of two
 runtime algorithms was better** -- both were measured against the same ground
-truth at the time, so the relative improvement is real. It should no longer be
-read as a statement about the detector's absolute accuracy, which is the
-number in the table above. `_ground_profile` is very likely still the better
-of the two algorithms; it is just not nearly as good as it looked.
+truth at the time, so the relative improvement is real. It should not be read
+as a statement about the detector's current absolute accuracy, which is the
+`GROUND_QUANTILE`/`shadow_tolerance` table two sections above. `_ground_profile`
+is still the better of the two algorithms; the quantile it was run at was
+simply mistuned for how much real occlusion the corrected ground truth
+reveals, and fixing that (previous section) is what actually restored strong
+recall -- not a third algorithm change.
 
 ---
 
@@ -417,14 +472,45 @@ driving, let alone the band where the check reacts. What counts as "coherent"
 depends on the scene: an empty street and a junction full of parked cars differ
 by more than the fault does.
 
-`_radar_health` therefore gained a **relative** test, comparing scatter against
-the sensor's own running median — the same principle the return-rate check
-already used. It works, on the fault that matters: with clutter onsetting
-mid-drive, radar health falls from **0.94 to 0.62** within about 60 frames, a
-graded response downstream fusion can act on. It still reads NO above because
-the fault is present from frame zero in this test, so the monitor never sees
-clean data to be inconsistent with — a genuinely structural limit of any
-self-referential check, not fixable by re-tuning it.
+`_radar_health` has a **relative** test for exactly this, comparing scatter
+against the sensor's own running median (`INCOHERENCE_RISE_RATIO`, the same
+principle the return-rate check uses). An earlier version of this document
+claimed that test catches clutter once it onsets mid-drive ("radar health
+falls from 0.94 to 0.62 within about 60 frames"). **That specific number was
+never reproduced by this test harness and turned out not to generalize when
+actually checked end-to-end on 2026-09-17.** `scripts/adversarial_test.py`
+gained a `radar_clutter_onset` condition -- 100 clean frames of baseline
+before the fault switches on, then clutter for the rest of a 50-episode,
+~4,000-frame run -- and the result is the opposite of the earlier claim:
+radar health measured **0.90 both before onset and after** (if anything
+rising slightly to 0.93 well after onset), not falling. Root cause found by
+reading `SensorHealthMonitor.update`: `incoherence_baseline` accepts every
+frame unconditionally, including fault frames, with a 200-frame window
+(`BASELINE_HISTORY`). A clutter fault sustained past that window gradually
+overwrites its own reference, so "current vs baseline" quietly becomes
+"clutter vs clutter" -- the relative check goes blind again, just delayed
+rather than avoided, and a 4,000-frame sustained fault is well past that
+delay. It **can** still catch a brief onset within the ~200-frame window
+(consistent with the original, narrower claim this document is now
+correcting), but that is a much smaller and more fragile claim than "catches
+clutter mid-drive."
+
+**An attempted fix made this worse, and was reverted -- worth recording in
+full rather than quietly dropping.** The obvious repair is to stop feeding
+already-anomalous samples into the baseline, so a sustained fault cannot
+erode its own reference. Implemented and measured: clean-condition radar
+health **dropped from 0.82 to 0.48** -- false alarms on ordinary healthy
+driving, a materially worse failure mode than the one being fixed. Real
+driving's incoherence varies scene to scene more than the clutter signal
+itself does (0.21-0.72 Clark-Evans across ordinary frames, calibration data
+above, against a 0.383-vs-0.499 clutter signal), so gating what counts as
+"baseline" on agreement with an early window locks onto whatever that window
+happened to contain and then flags ordinary later variance as anomalous. This
+is the same class of mistake `CROSS_RANGE_MIN_SAMPLES` already taught this
+project once (a too-eager fix that looks right on the fault it targets and
+wrong on everything else); the fix was reverted rather than kept, and
+`radar_clutter` remains a genuine, currently-unresolved gap rather than a
+solved one narrated as solved.
 
 **Range bias needed a check that owes the radar nothing, and now has one --
 but proving it needs more driving than this test replays.** A constant offset
@@ -470,13 +556,17 @@ across a longer live drive, which is what this check is actually meant for)
 is the way to close it -- not lowering the sample requirement, which would
 just reintroduce the false positive above.
 
-The honest summary for the report: **clutter is detectable once it onsets
-during operation; bias has a working, correctly-calibrated detector that needs
-several thousand paired observations -- several minutes of driving -- to
-prove itself, which is longer than a short adversarial replay provides.
-Neither is detectable if present before the monitor starts observing at all,
-which is a property of self-referential health monitoring in general, not a
-gap specific to this implementation.**
+The honest summary for the report: **clutter is detectable only within a
+narrow window right after it onsets, before the fault itself erodes the
+baseline it is being compared against -- a fault sustained past ~200 frames
+(~20s) is not currently caught, and an attempted fix for that made ordinary
+healthy driving worse, not better, so it was reverted rather than shipped.
+Bias has a working, correctly-calibrated detector that needs several
+thousand paired observations -- several minutes of driving -- to prove
+itself, which is longer than a short adversarial replay provides. Neither is
+detectable if present before the monitor starts observing at all, which is a
+property of self-referential health monitoring in general, not a gap
+specific to this implementation.**
 
 A methodological note worth carrying into the report: the first run of this test
 selected episodes by alphabetical prefix, which returned 25 `blindspot_cutin`
@@ -584,26 +674,41 @@ arrays eagerly and closes the file.
 
 ## 9. Honest summary of limitations
 
-- **The BEV occlusion detector is the weakest component, and this is now a
-  resolved, honest measurement rather than a pending one.** A ground-truth
-  camera-projection bug, shared identically by ground truth and the runtime
-  detector, made earlier numbers meaningless (see CLAUDE.md and §3). Against
-  the fixed ground truth and a full recollection, recall tops out at **0.479
-  at any shadow-tolerance threshold** (F1 0.610 at the new default,
-  tolerance 0.02) — a real ceiling, not a tuning artifact. Cell agreement is
-  0.568. The marching-vs-`_ground_profile` improvement (0.259 → 0.629 recall)
-  remains valid as a *relative* comparison, since both were measured against
-  the same ground truth at the time, but the current absolute numbers are
-  lower than that comparison implied.
+- **The BEV occlusion detector was the weakest component; it no longer is.**
+  A ground-truth camera-projection bug, shared identically by ground truth
+  and the runtime detector, made earlier numbers meaningless (see CLAUDE.md
+  and §3), and against the fixed ground truth recall first collapsed to a
+  real ceiling of 0.479 at any threshold. The actual bottleneck turned out to
+  be a second, separate issue -- `GROUND_QUANTILE` (0.30) was itself too
+  contaminated by nearby occlusion to estimate clear ground correctly on
+  scenes this dense. Lowered to 0.01 alongside `shadow_tolerance` (0.02 →
+  0.001) on 2026-09-17, validated on a disjoint held-out sample: recall
+  **0.917**, precision 0.727, F1 0.811 (was 0.482 / 0.846 / 0.614). Full
+  account, including the held-out validation, in §3.
 - **No adverse-weather data exists**, and cannot be collected on this CARLA build.
-  Robustness is evaluated by post-hoc frame degradation instead (§6), which is a weaker
-  claim than simulating the conditions.
+  Confirmed again on 2026-09-17, more thoroughly than before: even at Epic
+  render quality (not just the Low quality normally used), with manually
+  constructed `WeatherParameters` rather than named presets, `get_weather()`
+  still reads back all-zero and measured frame brightness does not move
+  (114-121 across ClearNoon/HardRainNight/a manual night+fog+rain preset).
+  No sun/sky/light actor is exposed through `world.get_actors()` either, so
+  there is no accessible workaround on this build via any path tried.
+  Robustness is evaluated by post-hoc frame degradation instead (§6), which
+  is a weaker claim than simulating the conditions.
 - **The evidential coupling to prediction is unproven in aggregate** — not
-  contradicted, but the regime where it acts is 2% of observations here. §5.
-- **Radar clutter is detectable only once it onsets mid-drive** (health 0.94 →
-  0.62). **Radar bias has a working, correctly-calibrated detector** (cross-checks
-  radar range against an independent camera-size estimate) but needs several
-  thousand paired observations to prove itself reliably — more than a short
+  contradicted, but the regime where it acts is 3% of observations here. §5.
+- **Radar clutter is detectable only within a narrow window right after it
+  onsets** (roughly the 200-frame baseline window), not once it has been
+  sustained for a realistic drive length -- corrected on 2026-09-17 after
+  actually testing the mid-drive-onset case end to end for the first time
+  (an earlier, narrower claim in this document had not been reproduced by
+  any test harness). An attempted fix (freeze the baseline against
+  already-anomalous samples) was tried and reverted: it dropped
+  clean-condition radar health from 0.82 to 0.48, a worse failure mode
+  (false alarms on healthy driving) than the gap it targeted. **Radar bias
+  has a working, correctly-calibrated detector** (cross-checks radar range
+  against an independent camera-size estimate) but needs several thousand
+  paired observations to prove itself reliably — more than a short
   adversarial replay provides, though not more than a real drive would supply.
   Neither is detectable if the fault predates the monitor observing at all. §6.
 - **End-to-end throughput is 2–9 FPS**, below the 15+ FPS the specification

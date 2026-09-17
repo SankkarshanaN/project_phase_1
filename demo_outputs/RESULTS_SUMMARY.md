@@ -50,16 +50,21 @@ pointer, not a substitute.
   described below, but **turned out to be invalid**: ground truth and the
   runtime detector shared an identical camera-projection sign bug, so
   comparing them agreed with itself regardless of what either was doing.
-- **Current, on the fixed ground truth and the fresh 15,270-frame
-  recollection: precision 0.842, recall 0.479, F1 0.610** at the new default
-  threshold (`DEFAULT_SHADOW_TOLERANCE = 0.02`); overall cell agreement
-  0.568. This is now the pipeline's clearly weakest component -- maximum
-  achievable recall at *any* threshold is 0.479. The march-vs-ground-profile
-  algorithm fix (recall capped at 0.259 by marching, 0.629 after switching to
-  a per-frame ground-disparity fit) remains a valid *relative* improvement --
-  both were measured against the same ground truth at the time -- but is not a
-  statement about current absolute accuracy. Full account, including the
-  projection-bug fix and the re-run threshold sweep, in `docs/RESULTS.md` §3.
+- On the fixed ground truth, recall first collapsed to precision 0.842 /
+  recall 0.479 / F1 0.610 at a `shadow_tolerance` of 0.02 -- the max
+  achievable recall at ANY threshold with `GROUND_QUANTILE` still at its old
+  value of 0.30. That quantile turned out to be the real bottleneck: a ring
+  that is 68-94% genuinely occluded contaminates even its bottom-30th-
+  percentile disparity estimate with near-object readings. **Current, fixed
+  2026-09-17 and validated on a disjoint held-out sample:
+  `GROUND_QUANTILE = 0.01`, `DEFAULT_SHADOW_TOLERANCE = 0.001` --
+  precision 0.727, recall 0.917, F1 0.811.** This is no longer the pipeline's
+  weakest component. The march-vs-ground-profile algorithm fix (recall
+  capped at 0.259 by marching, 0.629 after switching to a per-frame
+  ground-disparity fit) remains a valid *relative* improvement from earlier
+  in the project's history -- both were measured against the same ground
+  truth at the time. Full account, including the projection-bug fix and both
+  re-run sweeps, in `docs/RESULTS.md` §3.
 - `4_occlusion_grid_validation.jpg` shows an OLD detector's output and should
   not be quoted as current.
 
@@ -83,12 +88,16 @@ pointer, not a substitute.
 ## Known limitations (current -- see docs/RESULTS.md for the full list)
 - MiDaS gives *relative*, not metric, depth (no fixed physical scale) — this is exactly why the
   occlusion detector fuses in radar rather than trusting camera depth alone.
-- The occlusion detector is the weakest measured component: recall tops out at 0.479 at any
-  threshold against the corrected ground truth, and the sweep shows this is a property of the
-  detector, not the operating point.
+- The occlusion detector recalls 0.917 at precision 0.727 as of 2026-09-17 (was 0.479 recall
+  before a `GROUND_QUANTILE` fix -- see `docs/RESULTS.md` §3); no longer the weakest component.
 - End-to-end pipeline FPS measures 2-9 in the live dashboard (5.5-6.0 after moving MiDaS off
   the per-frame path), against the spec's 15+ MiDaS-alone target on a different GPU. Dominated
   by CARLA 0.10.0's UE5.5 rendering overhead plus running 4 models concurrently on one GPU.
-- Two radar faults (clutter, range bias) are difficult for a self-referential health monitor to
-  see when present from before the monitor starts observing. See `docs/RESULTS.md` §6 for the
-  full account, including a cross-sensor range check added to close part of this gap.
+- Two radar faults are difficult for a self-referential health monitor to see: range bias when
+  present from before the monitor starts observing, and clutter once sustained past its ~200-frame
+  baseline window (a fix for the latter was tried and reverted -- it made ordinary healthy driving
+  worse). See `docs/RESULTS.md` §6 for the full account, including a cross-sensor range check
+  added to close part of the bias gap.
+- CARLA 0.10.0's weather API remains unfixable from the Python API on this build -- confirmed
+  again 2026-09-17 at Epic render quality with manually constructed weather parameters, and no
+  accessible sun/sky/light actor exists as a workaround.

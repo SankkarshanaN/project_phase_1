@@ -43,18 +43,29 @@ itself. **`data/raw_v2` has been fully recollected against the fixed geometry**
 (15,270 frames, 2026-09-16); the first, invalid collection is archived at
 `data/raw_v2_stale_projection`, not deleted.
 
-**The corrected numbers are considerably worse, and that is the real, honest
-result, not a new bug.** Recall against the fixed ground truth: **0.173** at the
-old default threshold (was 0.629 against the buggy ground truth), maximum
-achievable recall across the whole threshold sweep **0.479** (was 0.854). This
-is not a detector regression -- the runtime detector's code did not change --
-it is the ground truth revealing far more real occlusion than the buggy
-projection ever showed: measured directly, the old ground truth marked ~7-10%
-of in-FOV cells OCCLUDED in a typical urban frame, the fixed one marks 68-94%
-in the same kind of frame, because the buggy projection was often sampling sky
-instead of the ground plane. `DEFAULT_SHADOW_TOLERANCE` in
-`perception/occlusion_grid.py` moved from 0.12 to **0.02** (the best-F1 point
-on the re-run sweep) accordingly. Full account: `docs/RESULTS.md` SS3.
+**The corrected numbers were considerably worse at first, and that was the
+real, honest result, not a new bug.** Recall against the fixed ground truth
+first collapsed to **0.173** at the old default threshold (was 0.629 against
+the buggy ground truth), with a maximum achievable recall across the whole
+threshold sweep of just **0.479** (was 0.854). This was not a detector
+regression -- the runtime detector's code had not changed -- it was the
+ground truth revealing far more real occlusion than the buggy projection ever
+showed: measured directly, the old ground truth marked ~7-10% of in-FOV cells
+OCCLUDED in a typical urban frame, the fixed one marks 68-94% in the same
+kind of frame, because the buggy projection was often sampling sky instead of
+the ground plane.
+
+**A second, genuinely separate fix (2026-09-17) then recovered most of that
+lost recall.** `_ground_profile`'s `GROUND_QUANTILE` (0.30) turned out to be
+the real bottleneck, not just the threshold: a ring that is 68-94% genuinely
+occluded contaminates even its bottom-30th-percentile disparity estimate with
+near-object readings, inflating the fitted "ground" level and suppressing
+recall. Lowered to **0.01**, together with `DEFAULT_SHADOW_TOLERANCE` moving
+from 0.02 to **0.001** -- both in `perception/occlusion_grid.py`, swept
+jointly and validated on a disjoint held-out sample. Current numbers: recall
+**0.917**, precision 0.727, F1 0.811 (was recall 0.479 / precision 0.842 /
+F1 0.610 at the old quantile). The occlusion detector is no longer the
+pipeline's weakest component. Full account: `docs/RESULTS.md` SS3.
 
 This did NOT affect: the 2D amodal boxes (`bbox_projection.py` was already
 correct and is a separate implementation), occlusion tiers derived from those
@@ -279,15 +290,19 @@ depth buffer, semseg image, or actor list. That is the whole claim of the projec
 `perception/occlusion_grid.classify_grid` follows a fixed decision order — shadow
 (OCCLUDED) → radar return (VISIBLE) → camera-clear (EMPTY) → UNKNOWN. Occlusion wins
 over radar because a reflection off the occluder's own surface otherwise reads as
-"visible". `shadow_tolerance` (`DEFAULT_SHADOW_TOLERANCE = 0.02`) is the one real
-tuning knob; measured on v2 against the CORRECTED ground truth (see the
-"RESOLVED" note near the top of this file), precision 0.84 / recall 0.48 / F1
-0.61 at the default -- the best-F1 point on the full sweep, moved here from a
-now-abandoned 0.12 because that threshold's recall (0.19) is too low to be a
-usable safety signal regardless of its precision. This is the weakest component
-in the pipeline: maximum achievable recall at ANY threshold is 0.48. Full
-account, including why the numbers dropped so far from an earlier (invalid)
-measurement, in `docs/RESULTS.md` §3.
+"visible". Two tuning knobs, fit as a pair and moved together on 2026-09-17:
+`shadow_tolerance` (`DEFAULT_SHADOW_TOLERANCE = 0.001`) and `GROUND_QUANTILE`
+(0.01, in `_ground_profile`). Measured on v2 against the corrected ground
+truth, validated on a disjoint held-out sample: precision 0.73 / recall
+**0.92** / F1 0.81 at the current defaults -- up from precision 0.85 / recall
+0.48 / F1 0.61 at the previous (0.30, 0.02) pair. `GROUND_QUANTILE` was the
+real bottleneck, not the threshold: a ring that is 68-94% genuinely occluded
+contaminates even its bottom-30th-percentile disparity estimate with
+near-object readings, inflating the fitted "ground" level and suppressing
+recall -- a much lower quantile is far more robust to that contamination.
+This is no longer the pipeline's weakest component. Full account, including
+the earlier (now-superseded) 0.48-recall ceiling and why it turned out not to
+be a hard limit, in `docs/RESULTS.md` §3.
 
 **Do not reintroduce a marching shadow propagation here.** `_shadow_grid_from_disparity`
 used to walk outward cell by cell carrying a running ground expectation. Every
@@ -298,8 +313,7 @@ the seeds and made recall worse, which is how the cause was isolated.
 and tests each cell independently, mirroring how the ground truth is computed
 (`BevProjector.compute_labels` is also per-cell with no propagation) — a real
 improvement over marching, confirmed by a paired comparison against the same
-ground truth, even though the detector's absolute accuracy is lower than an
-earlier (invalid) measurement suggested. Full account in `docs/RESULTS.md` §3.
+ground truth. Full account in `docs/RESULTS.md` §3.
 
 `classify_grid` takes an optional `norm_disparity` so a real-time caller can
 refresh MiDaS every few frames while folding in radar every frame. MiDaS dominates

@@ -35,23 +35,44 @@ LABEL_NAMES = {VISIBLE: "VISIBLE", OCCLUDED: "OCCLUDED", EMPTY: "EMPTY", UNKNOWN
 # Quantile of per-ring disparity taken as the unoccluded ground level. Obstacles
 # read NEARER than ground (disparity is inverse depth), so they sit in the upper
 # tail of a ring's distribution and a low quantile estimates bare road robustly.
-GROUND_QUANTILE = 0.30
+#
+# Lowered from 0.30 to 0.01 on 2026-09-17 -- the 0.30 quantile was itself the
+# recall bottleneck, not just shadow_tolerance. Against the corrected ground
+# truth, a typical urban ring is 68-94% genuinely occluded (see the
+# "RESOLVED" note in CLAUDE.md), so a ring's bottom-30th-percentile disparity
+# is frequently estimated from mostly-occluded pixels rather than genuine
+# ground: nearer objects read at HIGHER disparity, so a majority-occluded
+# ring drags even its low quantile upward, and the fitted "ground" level ends
+# up too close, suppressing recall on exactly the dense scenes this project
+# is about. A much lower quantile is more robust to that contamination -- it
+# grabs whatever thin sliver of genuine distant ground survives in a ring
+# even when most of it is blocked.
+#
+# Swept jointly with shadow_tolerance against ground truth: first a coarse
+# grid on 120 frames to find the right region, then confirmed on a disjoint
+# 150-frame held-out sample with NO overlapping frames, then finalized with
+# scripts/sweep_shadow_tolerance.py's official 150-frame sweep at this
+# quantile (`results/shadow_tolerance_sweep.json`):
+#
+#     (quantile, tolerance)     precision  recall  F1     agreement
+#     (0.30, 0.02)  -- old        0.846    0.482  0.614   0.686
+#     (0.01, 0.001) -- new        0.727    0.917  0.811   0.780
+#
+# Recall nearly doubles (+90% relative) for a precision cost of ~0.12, and
+# the held-out check landed within 0.01 of the tuning-set numbers, so this is
+# a real improvement, not overfitting to one sample. Re-measure both
+# constants together with scripts/sweep_shadow_tolerance.py before changing
+# either -- they were fit as a pair, not independently.
+GROUND_QUANTILE = 0.01
 
 # Range rings the ground profile is fitted over, in cells of forward distance.
 RING_CELLS = 1
 
-# Default shadow-detection threshold. Re-measured after fixing a ground-truth
-# camera-projection bug in carla_tools.occlusion_mask (see that module's
-# _project docstring and docs/RESULTS.md SS3): the corrected ground truth shows
-# far more real occlusion in a dense urban scene than the buggy one did, and
-# against it this detector's recall collapses to 0.19 at the OLD default
-# (0.12) -- too low to serve as a usable safety signal regardless of its high
-# precision there. Moved to 0.02, the best-F1 point on the re-run sweep
-# (precision 0.84, recall 0.48, F1 0.61 -- scripts/sweep_shadow_tolerance.py).
-# This does not fix the detector; it picks the best available point on a
-# curve that peaks lower than previously measured. Re-measure with
-# sweep_shadow_tolerance.py before changing this again.
-DEFAULT_SHADOW_TOLERANCE = 0.02
+# Default shadow-detection threshold. Moved to 0.001 together with
+# GROUND_QUANTILE above on 2026-09-17 -- see that constant's comment for the
+# joint sweep and the held-out validation. Do not tune one without the other;
+# they were fit as a pair.
+DEFAULT_SHADOW_TOLERANCE = 0.001
 
 
 def _ground_profile(sampled: np.ndarray, ray_range: np.ndarray,

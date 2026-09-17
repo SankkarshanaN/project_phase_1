@@ -154,10 +154,24 @@ FAULTS = {
     "radar_clutter": radar_clutter,
     "radar_bias": radar_bias,
     "extrinsic_drift": extrinsic_drift,
+    # Same clutter, but held off for a baseline period first. Every other
+    # condition here injects its fault from frame one, which is also the one
+    # case sensor_health.py's own relative check is structurally blind to --
+    # there is nothing clean to compare against yet (see that module's
+    # "Known limitations" docstring). This condition instead tests the
+    # realistic case: a fault that starts partway through an already-running
+    # drive, which is what the relative INCOHERENCE_RISE_RATIO check was
+    # actually built for and had never been exercised by this harness.
+    "radar_clutter_onset": radar_clutter,
 }
 
 CAMERA_FAULTS = {"darkness", "fog", "blur", "noise", "lens_blocked"}
-RADAR_FAULTS = {"radar_dropout", "radar_clutter", "radar_bias"}
+RADAR_FAULTS = {"radar_dropout", "radar_clutter", "radar_bias", "radar_clutter_onset"}
+
+# Frames of clean baseline before radar_clutter_onset switches the fault on.
+# COHERENCE_BASELINE_MIN (perception.sensor_health) is 40 -- this clears it
+# with margin so the relative check has a real norm to compare against.
+CLUTTER_ONSET_DELAY_FRAMES = 100
 
 
 # ------------------------------------------------------------------ pipeline
@@ -179,12 +193,18 @@ def _radar_for_box(radar_pts, box, img_w, fov):
 def run_pipeline(episodes, fault_name, cam_cfg, dt, labels, rng, image_dir=None):
     """Replays every episode under one fault and returns aggregate metrics."""
     fault = FAULTS[fault_name]
+    onset_delay = CLUTTER_ONSET_DELAY_FRAMES if fault_name == "radar_clutter_onset" else 0
     img_w, fov = cam_cfg["width"], cam_cfg["fov"]
 
     pos_err, lat_err, occ_err = [], [], []
     scores, truths = [], []
     health_cam, health_rad = [], []
+    # Health AFTER the fault has actually switched on, separate from the
+    # whole-run average -- averaging in the clean baseline period would
+    # dilute exactly the number this condition exists to report.
+    health_rad_post_onset = []
     n_detections = 0
+    frame_counter = 0
 
     # ONE monitor across the whole run, not one per episode. A vehicle's health
     # monitor runs continuously through a drive; resetting it every ~60-frame
@@ -197,6 +217,8 @@ def run_pipeline(episodes, fault_name, cam_cfg, dt, labels, rng, image_dir=None)
         tracker = MultiObjectTracker()
 
         for frame in frames:
+            frame_counter += 1
+            active_fault = _identity if frame_counter <= onset_delay else fault
             radar = np.asarray(frame["radar_pts"])
             rgb = None
             if image_dir is not None:
@@ -207,7 +229,7 @@ def run_pipeline(episodes, fault_name, cam_cfg, dt, labels, rng, image_dir=None)
                     if img is not None:
                         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
 
-            rgb_f, radar_f = fault(rgb, radar, rng)
+            rgb_f, radar_f = active_fault(rgb, radar, rng)
 
             ego_speed = float(np.hypot(frame["ego_vx"], frame["ego_vy"]))
             tracker.predict(dt, ego_speed=ego_speed)
@@ -254,6 +276,8 @@ def run_pipeline(episodes, fault_name, cam_cfg, dt, labels, rng, image_dir=None)
             monitor.update(rgb=rgb_f, radar_pts=radar_f, sensors_disagreed=disagreed,
                             range_innovation=tracker.last_range_innovation,
                             range_pairs=range_pairs)
+            if onset_delay and frame_counter > onset_delay:
+                health_rad_post_onset.append(monitor.report().radar)
 
             for aid, xy, vel, tier in truth:
                 best, bd = None, 5.0
@@ -288,6 +312,8 @@ def run_pipeline(episodes, fault_name, cam_cfg, dt, labels, rng, image_dir=None)
         "auc": _auc(scores, truths),
         "health_camera": float(np.mean(health_cam)) if health_cam else float("nan"),
         "health_radar": float(np.mean(health_rad)) if health_rad else float("nan"),
+        "health_radar_post_onset": (float(np.mean(health_rad_post_onset))
+                                      if health_rad_post_onset else float("nan")),
     }
 
 
@@ -368,11 +394,17 @@ def main():
     baseline = results[0]
 
     print(f"{'condition':<18}{'dets':>7}{'pos RMSE':>10}{'v_lat MAE':>11}"
-          f"{'hidden RMSE':>13}{'AUC':>7}{'cam hp':>8}{'rad hp':>8}{'noticed':>9}")
-    print("-" * 92)
+          f"{'hidden RMSE':>13}{'AUC':>7}{'cam hp':>8}{'rad hp':>13}{'noticed':>9}")
+    print("-" * 97)
     have_images = image_dir is not None
     for r in results:
         detected = "--"
+        # The onset condition's whole-run health average blends in the clean
+        # baseline period by construction, which would understate detection --
+        # score it on health AFTER the fault actually switched on instead.
+        rad_health_for_detection = (r["health_radar_post_onset"]
+                                      if r["fault"] == "radar_clutter_onset"
+                                      else r["health_radar"])
         if r["fault"] != "clean":
             if r["fault"] in CAMERA_FAULTS:
                 # Without images there is nothing to corrupt and nothing for the
@@ -381,13 +413,15 @@ def main():
                 detected = ("n/a" if not have_images
                             else "YES" if r["health_camera"] < 0.6 else "NO")
             elif r["fault"] in RADAR_FAULTS:
-                detected = "YES" if r["health_radar"] < 0.6 else "NO"
+                detected = "YES" if rad_health_for_detection < 0.6 else "NO"
             else:
                 detected = ("YES" if (r["health_camera"] < 0.8 or r["health_radar"] < 0.8)
                             else "NO")
+        rad_col = (f"{r['health_radar']:.2f}->{rad_health_for_detection:.2f}"
+                   if r["fault"] == "radar_clutter_onset" else f"{r['health_radar']:.2f}")
         print(f"{r['fault']:<18}{r['n_detections']:>7}{r['pos_rmse']:>10.3f}"
               f"{r['lat_vel_mae']:>11.3f}{r['occluded_rmse']:>13.3f}{r['auc']:>7.3f}"
-              f"{r['health_camera']:>8.2f}{r['health_radar']:>8.2f}{detected:>9}")
+              f"{r['health_camera']:>8.2f}{rad_col:>13}{detected:>9}")
 
     print("\nDEGRADATION VS CLEAN")
     for r in results[1:]:

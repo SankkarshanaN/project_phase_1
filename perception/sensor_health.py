@@ -56,11 +56,26 @@ version of it.
 Radar **clutter** is the other hard case: a fixed absolute threshold cannot
 separate it from a merely busy scene (clean driving already scores close to
 where injected clutter lands), so it needs the sensor's own relative running
-norm rather than an absolute band -- see `INCOHERENCE_RISE_RATIO` below. That
-relative check works once clutter onsets during a drive, but like every
-self-referential check in this module, it cannot see a fault present before
-it starts observing -- there is nothing yet to be inconsistent with. Neither
-limitation is hidden; `scripts/adversarial_test.py` reports both.
+norm rather than an absolute band -- see `INCOHERENCE_RISE_RATIO` below. This
+relative check catches a clutter fault only within a narrow window right
+after it onsets -- roughly `BASELINE_HISTORY` frames (200, ~20s) -- because
+`incoherence_baseline` accepts every frame unconditionally, fault frames
+included, so a fault sustained longer than that gradually overwrites its own
+reference and "current vs baseline" quietly becomes "clutter vs clutter".
+Verified end-to-end on 2026-09-17 (`scripts/adversarial_test.py`'s
+`radar_clutter_onset` condition, 100 clean frames then ~4,000 clutter frames
+across 50 episodes): radar health read 0.90 before onset and 0.90-0.93 after,
+not lower -- the sustained-fault case is NOT caught, only a brief onset
+within the window would be. An attempted fix (exclude already-anomalous
+samples from updating the baseline) was tried and reverted: it dropped
+clean-condition radar health from 0.82 to 0.48, because ordinary scene-to-
+scene variance (0.21-0.72 Clark-Evans across normal frames) is wider than the
+clutter signal itself (0.383 clean vs 0.499 clutter), so an early unlucky
+window gets locked in as "normal" and everything after it reads as false
+alarms. Like every self-referential check in this module, it also cannot see
+a fault present before it starts observing at all -- there is nothing yet to
+be inconsistent with. None of this is hidden; `scripts/adversarial_test.py`
+and `docs/RESULTS.md` SS6 report it in full, including the reverted fix.
 """
 import math
 from collections import deque
@@ -427,6 +442,21 @@ class SensorHealthMonitor:
             self.radar_baseline.append(rm["count"])
             self.incoherence.append(rm["incoherence"])
             self.incoherence_baseline.append(rm["incoherence"])
+            # A "freeze the baseline against its own anomaly flag" fix was
+            # tried here and reverted: it broke the common case instead of
+            # fixing the rare one. Real driving's incoherence varies scene to
+            # scene far more than the clutter signal itself (calibration data
+            # above: 0.21-0.72 Clark-Evans across ordinary frames, against a
+            # 0.383-vs-0.499 clutter signal), so gating what counts as
+            # "baseline" on agreement with an early window locks onto
+            # whatever that window happened to be and then flags ordinary
+            # later variance as anomalous. Measured: clean-condition radar
+            # health dropped from 0.82 to 0.48 under that change -- a much
+            # worse failure (false alarms on healthy driving) than the one it
+            # was trying to fix. A fault sustained long enough to fill
+            # BASELINE_HISTORY (200 frames, ~20s) still erodes this baseline,
+            # same as before; see this module's "Known limitations" docstring
+            # and docs/RESULTS.md SS6.
         if sensors_disagreed is not None:
             self.disagreements.append(bool(sensors_disagreed))
         if range_innovation is not None and math.isfinite(range_innovation):

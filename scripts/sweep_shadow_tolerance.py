@@ -36,10 +36,11 @@ import cv2
 
 from carla_tools.occlusion_mask import OCCLUDED as GT_OCCLUDED
 from common.config import load_yaml
-from perception.occlusion_grid import OCCLUDED as PRED_OCCLUDED
+from perception.occlusion_grid import DEFAULT_SHADOW_TOLERANCE, OCCLUDED as PRED_OCCLUDED
 from perception.occlusion_grid import classify_grid
 
-DEFAULT_TOLERANCES = [0.02, 0.04, 0.06, 0.08, 0.12, 0.16, 0.22, 0.30, 0.40]
+DEFAULT_TOLERANCES = [0.001, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, 0.04, 0.06,
+                       0.08, 0.12, 0.16, 0.22, 0.30, 0.40]
 
 
 def evaluate(frames, tolerances, bev_cfg):
@@ -113,8 +114,8 @@ def main():
     ax1.plot(tol, prec, marker="o", label="precision", color="#2e86c1")
     ax1.plot(tol, rec, marker="s", label="recall", color="#c0392b")
     ax1.plot(tol, f1, marker="^", label="F1", color="#1f9e6e")
-    ax1.axvline(0.12, color="#888", linestyle="--", linewidth=1)
-    ax1.text(0.125, 0.02, "default", fontsize=7, color="#888")
+    ax1.axvline(DEFAULT_SHADOW_TOLERANCE, color="#888", linestyle="--", linewidth=1)
+    ax1.text(DEFAULT_SHADOW_TOLERANCE * 1.05, 0.02, "default", fontsize=7, color="#888")
     ax1.set_xlabel("shadow_tolerance")
     ax1.set_ylabel("score")
     ax1.set_ylim(0, 1.02)
@@ -124,7 +125,7 @@ def main():
 
     ax2.plot(rec, prec, marker="o", color="#20242b")
     for r in rows:
-        ax2.annotate(f"{r['tolerance']:.2f}", (r["recall"], r["precision"]),
+        ax2.annotate(f"{r['tolerance']:.3f}", (r["recall"], r["precision"]),
                      fontsize=6.5, xytext=(3, 3), textcoords="offset points")
     ax2.set_xlabel("recall")
     ax2.set_ylabel("precision")
@@ -146,10 +147,11 @@ def main():
     best = max((r for r in rows if np.isfinite(r["f1"])), key=lambda r: r["f1"], default=None)
     print(f"\nWrote {out} and results/shadow_tolerance_sweep.json")
     if best:
-        print(f"Best F1 at tolerance {best['tolerance']:.2f}: "
+        print(f"Best F1 at tolerance {best['tolerance']:.3f}: "
               f"precision {best['precision']:.3f} recall {best['recall']:.3f} "
               f"F1 {best['f1']:.3f}")
-        print("If that tolerance differs from the 0.12 default, the reported recall was an")
+        print(f"If that tolerance differs from the {DEFAULT_SHADOW_TOLERANCE:.3f} default, the "
+              "reported recall was an")
         print("operating-point choice rather than a limit of the detector -- say which.")
 
 

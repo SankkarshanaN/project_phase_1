@@ -174,10 +174,12 @@ CLAUDE.md and `docs/RESULTS.md` §3): evidential validation accuracy
 **0.962 ± 0.008** on a split grouped by episode; fused lateral-velocity error
 **0.672 m/s** against camera-only 0.819 and radar-only 1.683 on identical
 observations; crossing-intent F1 **0.855** fused against 0.733 camera-only,
-warning 3.01 s before corridor entry. The occlusion detector itself is the
-project's weakest measured component — recall tops out at 0.479 at any
-threshold (F1 0.610 at the current default) — and that is now an honest,
-resolved number rather than one pending re-validation.
+warning 3.01 s before corridor entry. The occlusion detector recalls
+**0.917** at precision 0.727 (F1 0.811) as of a 2026-09-17 fix to
+`GROUND_QUANTILE` and `shadow_tolerance` — it was briefly the project's
+weakest measured component (recall capped at 0.479 at any threshold) after
+the ground-truth fix revealed how much real occlusion the old detector
+settings were missing, but that gap is closed; see `docs/RESULTS.md` §3.
 
 Note that the dashboard's own confidence numbers come from the same checkpoint
 `generate_report_figures.py` trains, so the two are consistent by construction.
