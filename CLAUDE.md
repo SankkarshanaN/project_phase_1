@@ -473,8 +473,16 @@ Two components are load-bearing in ways that aren't obvious from their names:
 - **`particle_tracker.py` is not interchangeable with the EKF.** Behind an occluder
   the distribution is genuinely multi-modal — emerge at the front, emerge at the rear,
   or stop — and a Gaussian puts its mean *inside the bus*, where the pedestrian
-  certainly is not. Measured after 20 hidden frames: 46% of belief mass well left of
-  the mean, 31% well right, only 23% near it.
+  certainly is not. Re-measured 2026-09-17 (the previous 46/31/23% figures predated
+  this session and could not be reproduced from any current script) on the same
+  synthetic scenario `scripts/generate_framework_figures.fig_particle_modes` uses
+  (a walker heading laterally into an OCCLUDED patch, `rng=default_rng(1)`), after
+  20 hidden frames (2.0s): of the belief mass, **35% sits more than 1.0m left of the
+  particle mean, 25% more than 1.0m right, only 41% within 1.0m of it** — so the
+  mean itself is a poor summary of where the hazard actually is. The four motion
+  hypotheses stay comparably populated too (continues 26%, slows 24%, stops 24%,
+  turns back 27%), confirming the split is real multi-modality, not one mode
+  dominating with noise. `position_spread` at this point is 2.25m.
 
 ## Crossing-intent prediction
 
@@ -482,9 +490,16 @@ Two components are load-bearing in ways that aren't obvious from their names:
 
 - **Radar cannot see lateral velocity.** Doppler measures the radial component, so a
   pedestrian crossing your path has near-zero radial velocity — the component that
-  decides the outcome is the one radar is blindest to. Measured on a crossing walker:
-  radar-only lateral velocity error 1.40 m/s against a truth of 1.40 (it estimates
-  zero), fused 0.13. The `_jacobian` range-rate row is where this lives.
+  decides the outcome is the one radar is blindest to. Re-measured 2026-09-17 on a
+  real crossing walker from the current dataset (`urban_crossing_clear_day_ep100000`,
+  actor 76, the 43 frames where all three sensor modes hold a confirmed track and the
+  walker is genuinely moving laterally, truth |v_lat| averaging 1.30 m/s): radar-only
+  lateral velocity MAE **1.30 m/s** with a mean estimate of **0.00 m/s** — it isn't
+  slightly wrong, it reports no lateral motion at all — camera-only 0.31 m/s, fused
+  **0.10 m/s**. The `_jacobian` range-rate row is where this lives. (The previous
+  1.40/0.13 figures predated this session; the actor they referenced could not be
+  identified in the current dataset, so this is a fresh measurement, not the same
+  walker re-scored.)
 - **Ablation modes must be compared on shared observations, not aggregate means.**
   Camera-only, radar-only and fused each hold tracks on a *different* subset of
   actors -- measured on the current v2 dataset (recollected 2026-09-16), 3,665 /
