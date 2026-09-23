@@ -21,3 +21,12 @@ Thumbs.db
 # Pretrained third-party weights, auto-downloaded by ultralytics on first use
 # of YOLOv8n -- not a project artifact, no reason to version 6.5 MB of it.
 yolov8n.pt
+
+# Screen recordings of the live demo. Hundreds of MB each and well over
+# GitHub's 100 MB per-file hard limit; the demo is reproducible from
+# scripts/live_demo.py, so the video is not a project artifact.
+*.mp4
+rec.zip
+
+# Stray stdout/stderr captures from backgrounded live_demo runs.
+scratchpad_live_demo_*.log

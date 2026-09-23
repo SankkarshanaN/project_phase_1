@@ -263,6 +263,18 @@ def assess(tracks=None, predictions=None, hidden_hazards=None, occlusion_grid=No
     # A single certain, imminent visible hazard must be able to reach BRAKE on
     # its own, which the weighted sum alone cannot do.
     score = max(score, by_source["visible"] * 0.95)
+    # The same has to be true of a hidden hazard, or the "a hazard nobody can
+    # see still produces risk" claim at the top of this module is not actually
+    # enforced: W_HIDDEN (0.35) sits below even WARN (0.50), so a maximally
+    # confident, perfectly-timed emergence prediction could never move the
+    # system past NONE on its own before this, no matter how sure the belief
+    # was -- the system would always wait for the hazard to become visible
+    # before reacting, which is exactly the reactive behaviour this component
+    # exists to avoid. Capped slightly below the visible escape hatch (0.90
+    # vs 0.95) because a prediction carries more irreducible uncertainty than
+    # an actual sighting, but it must still be able to reach BRAKE alone when
+    # the belief is strong enough.
+    score = max(score, by_source["hidden"] * 0.90)
     score = float(min(score, 1.0))
 
     action = NONE

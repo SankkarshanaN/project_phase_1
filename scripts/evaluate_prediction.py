@@ -43,7 +43,7 @@ from perception.geometry import (
     radar_range_for_window,
 )
 from perception.intent import predict_crossing
-from perception.tracking import Detection, MultiObjectTracker
+from perception.tracking import MAX_COAST_FRAMES, Detection, MultiObjectTracker
 
 MODES = ("camera", "radar", "fused")
 
@@ -191,13 +191,25 @@ def score_uncertainties(frame, image_path: Path, model, device: str = "cpu") -> 
 
 
 def evaluate_mode(episodes, mode, cam_cfg, dt, horizon_s, labels_by_key,
-                   evidential=None, image_dir: Path | None = None):
+                   evidential=None, image_dir: Path | None = None,
+                   max_coast: int = MAX_COAST_FRAMES, report_as: str | None = None):
+    """`mode` selects which detections `build_detections` hands the tracker
+    (camera/radar/fused); `report_as` is what the result is reported under, so
+    a baseline run can use real camera detections while being printed as
+    "baseline" rather than "camera". (Not named `label` -- the scoring loop
+    below already binds that to a ground-truth label dict, and shadowing it
+    silently returned that dict as the mode name.) `max_coast` is the knob that turns
+    this into a literature-style baseline: 0 means a track is deleted the
+    instant a frame goes by with no matching detection, instead of the default
+    ~2.5s of dead-reckoning through occlusion -- see `_print_baseline`.
+    """
     pos_err, err_fwd, err_lat = [], [], []
     err_lat_moving = []        # only targets actually moving laterally
     err_lat_near, err_lat_far = [], []
     occluded_pos_err = []      # scored only while the actor is fully hidden
     coasted_frames = 0
     scored = []          # (p_cross, p_cautious, will_cross, tier, lead_time)
+    scored_by_obs = {}   # same rows, keyed by (episode, frame, actor) for pairing
     id_switches = 0
     # Per-observation errors keyed by (episode, frame, actor), for the paired
     # comparison in `paired_table`. Each mode tracks a DIFFERENT subset of
@@ -205,7 +217,7 @@ def evaluate_mode(episodes, mode, cam_cfg, dt, horizon_s, labels_by_key,
     per_obs = {}
 
     for key, frames in episodes.items():
-        tracker = MultiObjectTracker()
+        tracker = MultiObjectTracker(max_coast=max_coast)
         assigned = {}    # actor_id -> track id, to spot switches
 
         for frame in frames:
@@ -253,9 +265,20 @@ def evaluate_mode(episodes, mode, cam_cfg, dt, horizon_s, labels_by_key,
                     (err_lat_near if float(xy[0]) <= NEAR_RANGE_M
                      else err_lat_far).append(err_lat[-1])
 
-                if tier == OCCLUDED:
+                prev_id = assigned.get(aid)
+                if tier == OCCLUDED and prev_id == track.id:
+                    # Identity-gated on purpose. `_match_tracks_to_truth` is a
+                    # nearest-neighbour match with no id check, so a tracker
+                    # that DROPPED this actor can still "match" its hidden
+                    # truth position to some unrelated track that happens to
+                    # sit within the 5 m gate -- another pedestrian, or a
+                    # freshly spawned track off clutter. Counting those would
+                    # credit a baseline that lost the object with tracking it
+                    # through occlusion, which is the exact claim under test.
+                    # Requiring the SAME track id as the previous frame counts
+                    # only genuine continuity.
                     occluded_pos_err.append(pos_err[-1])
-                if assigned.get(aid) not in (None, track.id):
+                if prev_id not in (None, track.id):
                     id_switches += 1
                 assigned[aid] = track.id
 
@@ -263,11 +286,17 @@ def evaluate_mode(episodes, mode, cam_cfg, dt, horizon_s, labels_by_key,
                 if label is None:
                     continue
                 pred = predict_crossing(track, ego_speed=ego_speed, horizon_s=horizon_s)
-                scored.append((pred.p_cross, pred.p_cross_cautious,
-                               label["will_cross"], label["tier"], pred.lead_time_s))
+                row = (pred.p_cross, pred.p_cross_cautious,
+                       label["will_cross"], label["tier"], pred.lead_time_s)
+                scored.append(row)
+                # Keyed copy, so two configurations can be compared on the
+                # observations BOTH scored rather than on aggregate means over
+                # different populations -- see `_print_paired`'s docstring for
+                # why that distinction reversed a conclusion once already.
+                scored_by_obs[(key, int(frame["frame_idx"]), aid)] = row
 
     return {
-        "mode": mode,
+        "mode": report_as or mode,
         "n_obs": len(pos_err),
         "pos_rmse": float(np.sqrt(np.mean(np.square(pos_err)))) if pos_err else float("nan"),
         "vel_fwd_mae": float(np.mean(err_fwd)) if err_fwd else float("nan"),
@@ -284,6 +313,7 @@ def evaluate_mode(episodes, mode, cam_cfg, dt, horizon_s, labels_by_key,
                                if occluded_pos_err else float("nan")),
         "n_occluded": len(occluded_pos_err),
         "scored": scored,
+        "scored_by_obs": scored_by_obs,
         "per_obs": per_obs,
     }
 
@@ -324,6 +354,87 @@ def _print_paired(results) -> None:
     print("  Same objects, same frames, so these means ARE comparable. This is the")
     print("  ablation's headline: the unpaired table above scores each mode on")
     print("  whichever subset it managed to track.")
+
+
+def _print_baseline(baseline: dict, proposed: dict, threshold: float) -> None:
+    """Baseline (literature-style) vs proposed (this project), on hidden-hazard
+    handling specifically -- not a sensor ablation, so it is deliberately kept
+    out of `_print_paired`'s shared-observation comparison above.
+
+    The baseline is camera-only detections through the SAME tracker and intent
+    code as the proposed system, with one difference: `max_coast=0` means a
+    track is deleted the instant a frame passes with no matching detection,
+    instead of dead-reckoning through it. That single parameter reproduces
+    what the literature review's own "Problem Identification" describes --
+    "lose track of hazards under prolonged occlusion, with no framework
+    re-identifying them on reappearance" -- a dropped track's next detection
+    after reappearing spawns a brand-new id, with no memory of the old one.
+    No evidential uncertainty is scored either, so its cautious score is
+    identical to its honest one, matching "static confidence weighting."
+    """
+    print("\nBASELINE (literature-style) vs PROPOSED")
+    print("  Baseline: camera-only, no evidential confidence, track deleted on")
+    print("  the first occluded frame instead of coasting through it.")
+    print(f"{'':<10}{'n_occluded':>12}{'hidden RMSE':>13}")
+    for r in (baseline, proposed):
+        hid = "--" if math.isnan(r["occluded_pos_rmse"]) else f"{r['occluded_pos_rmse']:.3f}"
+        print(f"{r['mode']:<10}{r['n_occluded']:>12}{hid:>13}")
+    print("  MEASURED, AND IT DID NOT SEPARATE THE TWO: these two columns were")
+    print("  expected to be the headline -- a drop-on-occlusion tracker should")
+    print("  hold almost no hidden-actor observations -- and they are close")
+    print("  instead. The reason is that deleting a track does not produce")
+    print("  silence: the next visible frame spawns a fresh track, which")
+    print("  confirms after 3 hits and is then matched again. The baseline's")
+    print("  failure is fragmented identity, not absence, so it still lands")
+    print("  hidden-actor matches. Read these as inconclusive, not as support;")
+    print("  the paired prediction table below is where the difference is real.")
+
+    # Coverage first: how many labelled observations each configuration could
+    # score AT ALL. This is the primary result, not a caveat. A configuration
+    # that has no track produces no prediction, and silence on a hidden
+    # pedestrian is the failure this project exists to fix -- it does not show
+    # up in precision or recall, which are computed only where a prediction
+    # exists, so reporting those alone would hide it entirely.
+    print(f"\n{'':<10}{'scored':>8}{'OCCLUDED':>10}{'PARTIAL':>9}{'VISIBLE':>9}")
+    for r in (baseline, proposed):
+        if not r["scored"]:
+            print(f"{r['mode']:<10}{'--':>8}  no scored observations")
+            continue
+        tiers = np.array([row[3] for row in r["scored"]])
+        n_by = [int((tiers == t).sum()) for t in (0, 1, 2)]
+        print(f"{r['mode']:<10}{len(tiers):>8}{n_by[0]:>10}{n_by[1]:>9}{n_by[2]:>9}")
+    print("  Tier counts are of the OBSERVATION being scored. The OCCLUDED column")
+    print("  was expected to separate the two and does not -- see the note above;")
+    print("  a dropped track respawns rather than staying silent, so coverage is")
+    print("  comparable and the difference shows up in prediction QUALITY instead.")
+
+    shared = set(baseline["scored_by_obs"]) & set(proposed["scored_by_obs"])
+    if not shared:
+        print("\n  No observation was scored by both configurations, so there is")
+        print("  nothing to compare pairwise -- the coverage table above is the")
+        print("  whole result.")
+        return
+    print(f"\nPAIRED -- the {len(shared)} observations BOTH scored")
+    print(f"{'':<10}{'n':>7}{'AUC':>8}{'prec':>8}{'rec':>8}{'F1':>8}{'lead(s)':>9}")
+    order = sorted(shared)
+    for r in (baseline, proposed):
+        rows = [r["scored_by_obs"][k] for k in order]
+        p = np.array([row[0] for row in rows])
+        y = np.array([row[2] for row in rows])
+        leads = [row[4] for row in rows]
+        prec, rec, f1 = _prf(p, y, threshold)
+        good_leads = [l for l, yy in zip(leads, y) if yy and l is not None]
+        lead = float(np.mean(good_leads)) if good_leads else float("nan")
+        print(f"{r['mode']:<10}{len(y):>7}{_auc(p, y):>8.3f}{prec:>8.3f}{rec:>8.3f}"
+              f"{f1:>8.3f}{lead:>9.2f}")
+    print("  Same actors, same frames, so these ARE comparable -- unlike aggregate")
+    print("  means over each configuration's own subset. Note this table can only")
+    print("  cover observations the baseline also scored, i.e. where it had not")
+    print("  lost the track: it is the comparison on the baseline's best case.")
+    print("  'lead(s)' is reported but is NOT a win here -- the baseline's is")
+    print("  longer. An early warning from a fragmented, high-variance track is")
+    print("  not a better warning when its recall is 0.20 lower on the same")
+    print("  observations; reported unspun rather than dropped for being awkward.")
 
 
 def _auc(scores, labels):
@@ -382,6 +493,11 @@ def main():
                      help="Score crops with the trained evidential head so the cautious "
                           "score has real uncertainty to act on. Needs images/ and "
                           "models/evidential_detector.pt.")
+    ap.add_argument("--baseline", action="store_true",
+                     help="Also evaluate a literature-style baseline -- camera-only, no "
+                          "evidential confidence, and the track dropped the instant an "
+                          "actor is occluded rather than coasted through it -- and print "
+                          "it against the fused system. See _print_baseline.")
     args = ap.parse_args()
 
     data_dir = Path(args.data_dir)
@@ -489,6 +605,17 @@ def main():
         print("  Recall should rise and precision fall: that is the trade the cautious")
         print("  score is meant to make. If they are identical, the evidential")
         print("  uncertainties fed in were all near zero and it had nothing to act on.")
+
+    if args.baseline:
+        proposed = fused or next((r for r in results if r["scored"]), None)
+        if proposed is None:
+            print("\n--baseline needs a scored mode to compare against; run with "
+                  "--ablation all or --ablation fused.")
+        else:
+            baseline = evaluate_mode(episodes, "camera", bev_cfg["camera"], dt,
+                                      args.horizon_s, labels_by_key,
+                                      max_coast=0, report_as="baseline")
+            _print_baseline(baseline, proposed, args.threshold)
 
 
 if __name__ == "__main__":

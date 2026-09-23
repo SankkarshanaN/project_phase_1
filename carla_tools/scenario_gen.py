@@ -133,6 +133,14 @@ def _shadow_position(camera_loc: carla.Location, occluder: carla.Actor,
     stick far enough toward the ego, and for half the random lateral jitter
     range the walker was in plain view from the first frame. The dataset's
     missing OCCLUDED tier traces directly to it.
+
+    Where the ego approaches from roughly behind the occluder (the common
+    case: same lane, kerb-parked ahead), this ray is nearly parallel to the
+    occluder's own length, so it lands the target near the occluder's own
+    front face already -- but only incidentally, because it depends on the
+    ego's current viewing angle. `_front_corner_shadow_position` below makes
+    that placement deliberate instead of a side effect of geometry that
+    happens to line up.
     """
     o = occluder.get_transform().location
     d = np.array([o.x - camera_loc.x, o.y - camera_loc.y, 0.0])
@@ -144,6 +152,36 @@ def _shadow_position(camera_loc: carla.Location, occluder: carla.Actor,
     depth = _box_half_width_along(occluder, d) + clearance_m
     return carla.Location(x=o.x + d[0] * depth, y=o.y + d[1] * depth,
                            z=o.z), dist + depth
+
+
+def _front_corner_shadow_position(occluder: carla.Actor,
+                                    clearance_m: float) -> carla.Location:
+    """A ground point near the occluder's own front-right corner, defined
+    from the occluder's geometry alone -- not the camera's viewing angle the
+    way `_shadow_position` is.
+
+    This is the classic "pedestrian steps out from in front of a parked bus"
+    hazard: hidden right up until the moment they clear the bus's own front
+    bumper, which is exactly where this places them (pushed `clearance_m`
+    further forward so they start genuinely behind it, not straddling the
+    face). The caller still has to verify with `_shadow_covers` -- this
+    function only says where the classic hazard sits, not that this specific
+    occluder is tall or wide enough to actually hide someone there.
+    """
+    t = occluder.get_transform()
+    fwd, right = t.get_forward_vector(), t.get_right_vector()
+    bb = occluder.bounding_box
+    front = bb.extent.x + clearance_m
+    # Toward the right edge of the occluder's own body, not past it -- the
+    # target should still be screened by the occluder's width, only close to
+    # the corner it will first clear as it walks forward and left.
+    side = bb.extent.y * 0.8
+    o = t.location
+    return carla.Location(
+        x=o.x + fwd.x * front + right.x * side,
+        y=o.y + fwd.y * front + right.y * side,
+        z=o.z,
+    )
 
 
 def _shadow_covers(camera_loc: carla.Location, occluder: carla.Actor,

@@ -30,7 +30,8 @@ from dataclasses import dataclass, field
 import carla
 
 from carla_tools.scenario_gen import (
-    _distance_to_path_edge, _ego_camera_location, _shadow_covers, _shadow_position,
+    _distance_to_path_edge, _ego_camera_location, _front_corner_shadow_position,
+    _shadow_covers, _shadow_position,
 )
 from carla_tools.walker_behavior import WalkerDriver, sample_behaviour
 from common.config import load_yaml
@@ -53,10 +54,24 @@ OCCLUDER_BLUEPRINTS = [
 
 WALKER_BLUEPRINTS = ["walker.pedestrian.00*"]
 
-# Widest half-width among OCCLUDER_BLUEPRINTS, plus clearance. Used to park the
-# occluder provisionally before its real bounding box can be read back (that
-# needs a tick, and the manager must not tick -- see `_finish_staging`).
-PROVISIONAL_HALF_WIDTH_M = 1.5
+# Widest half-width among OCCLUDER_BLUEPRINTS. Used to park the occluder
+# provisionally before its real bounding box can be read back (that needs a
+# tick, and the manager must not tick -- see `_finish_staging`).
+#
+# Measured directly (world.try_spawn_actor + bounding_box.extent.y) rather
+# than assumed: vehicle.fuso.mitsubishi (the bus) is 1.964m, not the 1.5m
+# this constant previously assumed -- sprinter.mercedes 0.994m,
+# carlacola.actors 1.456m, firetruck.actors 1.451m are all narrower and were
+# never the binding case. At the old 1.5m the bus's provisional kerb spot
+# undershot its real half-width by 0.46m, so `world.try_spawn_actor` failed
+# on collision with sidewalk geometry whenever the bus was drawn -- 100% of
+# the time in a direct test, confirmed by `stage_at_waypoint` returning
+# False for every 'vehicle.fuso.mitsubishi' draw while other blueprints at
+# the same waypoints succeeded. Silent in the dynamic staging path
+# (`_stage`), which just retries at the next ahead-position on failure, but
+# fatal for a fixed course (`live_demo.build_fixed_course`), where a failed
+# waypoint is simply lost rather than retried.
+PROVISIONAL_HALF_WIDTH_M = 2.0
 KERB_CLEARANCE_M = 0.3
 
 # The ego is judged stalled below this speed. Town10HD's autopilot legitimately
@@ -332,6 +347,39 @@ class EncounterManager:
         occluder.set_simulate_physics(False)
         self._pending = (occluder, wp)
 
+    def stage_at_waypoint(self, wp) -> bool:
+        """Stages an occluder at a caller-supplied waypoint, bypassing the
+        "35m ahead of the ego" lookup `_stage` does.
+
+        For a fixed, deterministic course built once before the drive starts
+        -- the caller already has its own list of waypoints spread along the
+        route and wants an occluder parked at each, not one staged reactively
+        as the ego happens to approach. Reuses the same kerb-placement and
+        two-tick seat/pair sequence as the dynamic path (`_stage` /
+        `_finish_staging`) so a fixed course gets the identical, already-
+        proven placement geometry -- only the choice of *where* differs.
+
+        Returns False (and spawns nothing) for a junction waypoint, same
+        reasoning as `_stage`: no stable kerb, unpredictable route through it.
+        Caller must `world.tick()` then call `_finish_staging()` before
+        staging the next one -- the pending occluder's real bounding box
+        cannot be read back until a tick has passed.
+        """
+        if wp.is_junction:
+            return False
+        bp_lib = self.world.get_blueprint_library()
+        occ_loc = self._kerb_location(wp, PROVISIONAL_HALF_WIDTH_M)
+        occ_bp = bp_lib.filter(self.rng.choice(OCCLUDER_BLUEPRINTS))
+        if not occ_bp:
+            return False
+        occluder = self.world.try_spawn_actor(
+            occ_bp[0], carla.Transform(occ_loc, wp.transform.rotation))
+        if occluder is None:
+            return False
+        occluder.set_simulate_physics(False)
+        self._pending = (occluder, wp)
+        return True
+
     def _kerb_location(self, wp, half_width_m: float) -> carla.Location:
         """A parking spot to the right of `wp`, fully clear of its lane.
 
@@ -386,8 +434,16 @@ class EncounterManager:
         self._last_stage_at = self._odometer
 
     def _spawn_hidden_walker(self, bp_lib, occluder, occluder_loc=None):
-        """Places a walker genuinely inside the occluder's shadow, from the
-        camera's eye point rather than the vehicle origin.
+        """Places a walker genuinely inside the occluder's shadow.
+
+        Tries the classic "about to step out from in front of a parked bus"
+        placement first -- near the occluder's own front-right corner,
+        deliberately, not as a side effect of the ego's current viewing
+        angle -- and falls back to the camera-ray placement (which can hide
+        a walker anywhere along the occluder's length, not just the front)
+        only if that fails `_shadow_covers` a few times in a row, so an
+        unusual occluder shape or approach angle still gets an encounter
+        rather than none at all.
 
         Returns `(walker, location)` -- the caller needs the location because
         the actor's own transform is not readable until the next tick.
@@ -401,7 +457,10 @@ class EncounterManager:
 
         for attempt in range(6):
             clearance = self.rng.uniform(1.0, 2.5) + attempt * 0.75
-            loc, _dist = _shadow_position(cam, occluder, clearance)
+            if attempt < 4:
+                loc = _front_corner_shadow_position(occluder, clearance)
+            else:
+                loc, _dist = _shadow_position(cam, occluder, clearance)
             loc.z += 1.0
             if not _shadow_covers(cam, occluder, loc):
                 continue
