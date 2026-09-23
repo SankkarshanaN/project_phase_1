@@ -1,0 +1,135 @@
+{
+  "experiment_id": "AUDIT-B-OCCLUSION-HOLDOUT",
+  "operating_point": {
+    "GROUND_QUANTILE_q": 0.01,
+    "shadow_tolerance_tau": 0.001
+  },
+  "operating_point_provenance": "q and tau were selected as best-F1 on the sweep's 120-frame seed-0 sample and the manuscript reports the score from that same sample. This run holds the operating point FIXED and evaluates it on frames excluded from that sample.",
+  "evaluation_set": {
+    "n_frames_evaluated": 300,
+    "n_cells": 120000,
+    "sampling_seed": 1234,
+    "disjoint_from_sweep": true,
+    "sweep_frames_excluded": 120,
+    "denominator": "BEV grid CELLS (20x20=400 per frame) for P/R/F1; frames for CI"
+  },
+  "heldout": {
+    "precision_occluded": 0.7061285462248722,
+    "recall_occluded": 0.9177839149719642,
+    "f1_occluded": 0.798163000917044,
+    "iou_occluded": 0.6641191788288016,
+    "cell_agreement": 0.7689,
+    "tp": 54833,
+    "fp": 22820,
+    "fn": 4912,
+    "tn": 37435,
+    "per_frame_f1_mean": 0.7783558578926859,
+    "per_frame_f1_ci95": [
+      0.7603564084049437,
+      0.7950885419676648
+    ],
+    "n_bootstrap": 2000
+  },
+  "sweep_sample_reported": {
+    "precision_occluded": 0.7268598116451538,
+    "recall_occluded": 0.9174089068825911,
+    "f1_occluded": 0.8110932936257946,
+    "cell_agreement": 0.7801,
+    "source": "results/shadow_tolerance_sweep.json (tuning sample)"
+  },
+  "optimism_gap": {
+    "precision": 0.020731265420281586,
+    "recall": -0.0003750080893730745,
+    "f1": 0.01293029270875068,
+    "note": "positive = tuning sample flattered the operating point"
+  },
+  "confusion_gt_vs_pred_occluded": {
+    "rows_gt": [
+      "VISIBLE",
+      "OCCLUDED",
+      "UNKNOWN"
+    ],
+    "cols_pred": [
+      "not-OCCLUDED",
+      "OCCLUDED"
+    ],
+    "matrix": [
+      [
+        3835,
+        22820
+      ],
+      [
+        4912,
+        54833
+      ],
+      [
+        33600,
+        0
+      ]
+    ],
+    "note": "The two modules' label enums differ (occlusion_mask.UNKNOWN==2 vs occlusion_grid.EMPTY==2), so only the OCCLUDED class is comparable and the prediction axis is collapsed to OCCLUDED / not-OCCLUDED."
+  },
+  "by_scenario": {
+    "blindspot_cutin_clear_day": {
+      "precision": 0.5677714508200711,
+      "recall": 0.9195239221250099,
+      "f1": 0.7020521153036048,
+      "cell_agreement": 0.6905625,
+      "n_cells": 32000
+    },
+    "multi_occlusion_clear_day": {
+      "precision": 0.8108940585231418,
+      "recall": 0.9251826505132711,
+      "f1": 0.8642764578833694,
+      "cell_agreement": 0.8328723404255319,
+      "n_cells": 18800
+    },
+    "occluded_pedestrian_crossing_clear_day": {
+      "precision": 0.8635906883269134,
+      "recall": 0.9162224591329069,
+      "f1": 0.8891283731356152,
+      "cell_agreement": 0.8602173913043478,
+      "n_cells": 18400
+    },
+    "urban_crossing_clear_day": {
+      "precision": 0.6960733542510739,
+      "recall": 0.9144023370282924,
+      "f1": 0.7904386329043863,
+      "cell_agreement": 0.761496062992126,
+      "n_cells": 50800
+    }
+  },
+  "by_occlusion_severity": {
+    "0.00-0.05": {
+      "precision": 0.054758800521512385,
+      "recall": 0.9333333333333333,
+      "f1": 0.10344827586206896,
+      "n_frames": 3
+    },
+    "0.05-0.20": {
+      "precision": 0.2,
+      "recall": 0.9132653061224489,
+      "f1": 0.32813932172318977,
+      "n_frames": 7
+    },
+    "0.20-0.50": {
+      "precision": 0.5448170731707317,
+      "recall": 0.9288907370828569,
+      "f1": 0.6868057957646335,
+      "n_frames": 127
+    },
+    "0.50-0.65": {
+      "precision": 0.8057981711567639,
+      "recall": 0.915660966404175,
+      "f1": 0.8572238701797243,
+      "n_frames": 94
+    },
+    "0.65-1.01": {
+      "precision": 0.9443296666480541,
+      "recall": 0.9088075662313934,
+      "f1": 0.926228161454625,
+      "n_frames": 69
+    }
+  },
+  "severity_definition": "fraction of GT grid cells that are OCCLUDED in that frame"
+}

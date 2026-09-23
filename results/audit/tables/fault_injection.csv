@@ -1,0 +1,12 @@
+condition,n_detections,pos_rmse_m,v_lat_mae,intent_auc,camera_health,radar_health,detected
+clean,1113,2.152,0.882,0.86,0.98,0.88,
+darkness,64,2.579,0.368,nan,0.05,0.89,True
+fog,1098,2.079,0.898,0.867,0.05,0.88,True
+blur,1088,2.103,0.891,0.87,0.05,0.88,True
+noise,1113,2.152,0.882,0.86,0.05,0.88,True
+lens_blocked,813,2.257,0.671,0.861,0.39,0.87,True
+radar_dropout,1113,2.267,0.656,0.919,0.97,0.42,True
+radar_clutter,1113,2.286,1.04,0.879,0.98,0.97,False
+radar_bias,1113,2.247,1.045,0.852,0.98,0.88,False
+extrinsic_drift,1113,2.26,0.831,0.931,0.98,0.89,False
+radar_clutter_onset,1113,2.418,1.209,0.874,0.98,0.96->0.91,False

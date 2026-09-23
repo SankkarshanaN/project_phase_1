@@ -1,0 +1,367 @@
+{
+  "experiment_id": "SP-02-INTENT-LEAD-TIME",
+  "status": "EXECUTED",
+  "bands_s": [
+    [
+      0.0,
+      0.5
+    ],
+    [
+      0.5,
+      1.0
+    ],
+    [
+      1.0,
+      1.5
+    ],
+    [
+      1.5,
+      2.0
+    ],
+    [
+      2.0,
+      2.5
+    ],
+    [
+      2.5,
+      3.01
+    ]
+  ],
+  "ground_truth": "time_to_entry_s from intent_labels.npz (project's own corridor definition)",
+  "evaluation_design": "per band: positives = observations whose true time-to-entry falls in the band; negatives = the common pool of all will_cross==False observations scored by that configuration. Recall is band-specific; precision and AUC share the common negative pool and are comparable across bands for a given configuration.",
+  "min_positives_for_reliability": 20,
+  "by_mode": {
+    "camera": {
+      "n_scored": 3665,
+      "n_negatives_pool": 1751,
+      "bands": {
+        "0.0-0.5s": {
+          "band_s": [
+            0.0,
+            0.5
+          ],
+          "n_positives": 1751,
+          "n_negatives": 1751,
+          "roc_auc": 0.8019782120097156,
+          "pr_auc": 0.8050398094287319,
+          "precision": 0.8292349726775956,
+          "recall": 0.6933181039406053,
+          "f1": 0.7552099533437013,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.7752712735579669,
+          "reliable": true
+        },
+        "0.5-1.0s": {
+          "band_s": [
+            0.5,
+            1.0
+          ],
+          "n_positives": 45,
+          "n_negatives": 1751,
+          "roc_auc": 0.757256171076845,
+          "pr_auc": 0.06834688934632842,
+          "precision": 0.09090909090909091,
+          "recall": 0.5555555555555556,
+          "f1": 0.15625,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.706389999365442,
+          "reliable": true
+        },
+        "1.0-1.5s": {
+          "band_s": [
+            1.0,
+            1.5
+          ],
+          "n_positives": 36,
+          "n_negatives": 1751,
+          "roc_auc": 0.6081048924424138,
+          "pr_auc": 0.028482498013498028,
+          "precision": 0.0421455938697318,
+          "recall": 0.3055555555555556,
+          "f1": 0.07407407407407407,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.581389999365442,
+          "reliable": true
+        },
+        "1.5-2.0s": {
+          "band_s": [
+            1.5,
+            2.0
+          ],
+          "n_positives": 28,
+          "n_negatives": 1751,
+          "roc_auc": 0.5494003426613364,
+          "pr_auc": 0.016738487118061963,
+          "precision": 0.00398406374501992,
+          "recall": 0.03571428571428571,
+          "f1": 0.007168458781362007,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.44646936444480706,
+          "reliable": true
+        },
+        "2.0-2.5s": {
+          "band_s": [
+            2.0,
+            2.5
+          ],
+          "n_positives": 28,
+          "n_negatives": 1751,
+          "roc_auc": 0.6041037774333035,
+          "pr_auc": 0.018895159989441617,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.4286122215876642,
+          "reliable": true
+        },
+        "2.5-3.0s": {
+          "band_s": [
+            2.5,
+            3.0
+          ],
+          "n_positives": 26,
+          "n_negatives": 1751,
+          "roc_auc": 0.657272767209946,
+          "pr_auc": 0.02151956609109684,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 0.8572244431753284,
+          "balanced_accuracy": 0.4286122215876642,
+          "reliable": true
+        }
+      }
+    },
+    "radar": {
+      "n_scored": 2491,
+      "n_negatives_pool": 881,
+      "bands": {
+        "0.0-0.5s": {
+          "band_s": [
+            0.0,
+            0.5
+          ],
+          "n_positives": 1528,
+          "n_negatives": 881,
+          "roc_auc": 0.7337843419246335,
+          "pr_auc": 0.8157695982260023,
+          "precision": 1.0,
+          "recall": 0.018979057591623036,
+          "f1": 0.037251123956326265,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5094895287958116,
+          "reliable": true
+        },
+        "0.5-1.0s": {
+          "band_s": [
+            0.5,
+            1.0
+          ],
+          "n_positives": 39,
+          "n_negatives": 881,
+          "roc_auc": 0.8908000814924765,
+          "pr_auc": 0.22150102244263953,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5,
+          "reliable": true
+        },
+        "1.0-1.5s": {
+          "band_s": [
+            1.0,
+            1.5
+          ],
+          "n_positives": 21,
+          "n_negatives": 881,
+          "roc_auc": 0.9044105724014918,
+          "pr_auc": 0.11207524297745033,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5,
+          "reliable": true
+        },
+        "1.5-2.0s": {
+          "band_s": [
+            1.5,
+            2.0
+          ],
+          "n_positives": 14,
+          "n_negatives": 881,
+          "roc_auc": 0.9206664504621371,
+          "pr_auc": 0.09063228282351138,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5,
+          "reliable": false
+        },
+        "2.0-2.5s": {
+          "band_s": [
+            2.0,
+            2.5
+          ],
+          "n_positives": 7,
+          "n_negatives": 881,
+          "roc_auc": 0.9521647478514675,
+          "pr_auc": 0.08061584080636863,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5,
+          "reliable": false
+        },
+        "2.5-3.0s": {
+          "band_s": [
+            2.5,
+            3.0
+          ],
+          "n_positives": 1,
+          "n_negatives": 881,
+          "roc_auc": 0.9699205448354143,
+          "pr_auc": 0.03571428571428571,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 1.0,
+          "balanced_accuracy": 0.5,
+          "reliable": false
+        }
+      }
+    },
+    "fused": {
+      "n_scored": 3065,
+      "n_negatives_pool": 1368,
+      "bands": {
+        "0.0-0.5s": {
+          "band_s": [
+            0.0,
+            0.5
+          ],
+          "n_positives": 1597,
+          "n_negatives": 1368,
+          "roc_auc": 0.8782290533785936,
+          "pr_auc": 0.8691975303444128,
+          "precision": 0.8111731843575419,
+          "recall": 0.9092047589229806,
+          "f1": 0.8573959255978741,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.8310643677655838,
+          "reliable": true
+        },
+        "0.5-1.0s": {
+          "band_s": [
+            0.5,
+            1.0
+          ],
+          "n_positives": 59,
+          "n_negatives": 1368,
+          "roc_auc": 0.7921994251164635,
+          "pr_auc": 0.1350241873416782,
+          "precision": 0.11518324607329843,
+          "recall": 0.7457627118644068,
+          "f1": 0.19954648526077096,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.7493433442362969,
+          "reliable": true
+        },
+        "1.0-1.5s": {
+          "band_s": [
+            1.0,
+            1.5
+          ],
+          "n_positives": 23,
+          "n_negatives": 1368,
+          "roc_auc": 0.7932875667429443,
+          "pr_auc": 0.03749100029553956,
+          "precision": 0.04519774011299435,
+          "recall": 0.6956521739130435,
+          "f1": 0.08488063660477453,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.7242880752606153,
+          "reliable": true
+        },
+        "1.5-2.0s": {
+          "band_s": [
+            1.5,
+            2.0
+          ],
+          "n_positives": 11,
+          "n_negatives": 1368,
+          "roc_auc": 0.7853867623604466,
+          "pr_auc": 0.018798480204020092,
+          "precision": 0.01744186046511628,
+          "recall": 0.5454545454545454,
+          "f1": 0.03380281690140845,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.6491892610313663,
+          "reliable": false
+        },
+        "2.0-2.5s": {
+          "band_s": [
+            2.0,
+            2.5
+          ],
+          "n_positives": 5,
+          "n_negatives": 1368,
+          "roc_auc": 0.7804824561403508,
+          "pr_auc": 0.009358007613157821,
+          "precision": 0.008797653958944282,
+          "recall": 0.6,
+          "f1": 0.017341040462427747,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.6764619883040935,
+          "reliable": false
+        },
+        "2.5-3.0s": {
+          "band_s": [
+            2.5,
+            3.0
+          ],
+          "n_positives": 2,
+          "n_negatives": 1368,
+          "roc_auc": 0.6222587719298246,
+          "pr_auc": 0.0028511225479227274,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": NaN,
+          "specificity": 0.7529239766081871,
+          "balanced_accuracy": 0.37646198830409355,
+          "reliable": false
+        }
+      }
+    }
+  },
+  "interpretation": {
+    "headline": "Fusion substantially extends the detection horizon. At 1.0-1.5s before corridor entry fused recall is 0.696 vs camera 0.306 (2.3x); at 1.5-2.0s it is 0.545 vs 0.036. Radar alone detects essentially nothing at any lead time, consistent with its structural lateral blindness.",
+    "read_recall_not_precision": "Precision and F1 are NOT comparable across bands and must not be quoted per band. Every band shares one large negative pool (thousands of non-crossing observations) while the positive count falls from ~1600 in the nearest band to a handful in the far bands, so precision is driven to near zero by construction regardless of model quality. Recall (band-specific by definition) and ROC-AUC are the interpretable columns.",
+    "label_horizon_vs_realised": "Labels use a 3.0s horizon but realised entry times cluster hard at the near end: of 6,663 observations with a ground-truth entry time, the 0.0-0.5s band holds ~1,600 of the positives each configuration scores, while bands beyond 1.5s hold fewer than 20. The dataset therefore supports lead-time claims only out to about 1.5s.",
+    "radar_auc_artifact": "Radar ROC-AUC appears to RISE with lead time (0.734 to 0.970) while its recall stays at 0.000. AUC is rank-based and does not require the model to cross the decision threshold; with n as low as 1-14 positives those values are unstable and must not be reported as radar improving at long range."
+  },
+  "reliable_bands": {
+    "camera": [
+      "0.0-0.5s",
+      "0.5-1.0s",
+      "1.0-1.5s",
+      "1.5-2.0s",
+      "2.0-2.5s",
+      "2.5-3.0s"
+    ],
+    "radar": [
+      "0.0-0.5s",
+      "0.5-1.0s",
+      "1.0-1.5s"
+    ],
+    "fused": [
+      "0.0-0.5s",
+      "0.5-1.0s",
+      "1.0-1.5s"
+    ]
+  }
+}

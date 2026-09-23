@@ -1,0 +1,114 @@
+[
+  {
+    "experiment": "A: classification + uncertainty",
+    "status": "EXECUTED",
+    "dataset": "raw_v2 val (episode-disjoint)",
+    "n": 12552,
+    "main_metric": "acc 0.9679, ECE 0.0622, err-AUROC 0.942",
+    "file": "classification_metrics.json / uncertainty_metrics.json"
+  },
+  {
+    "experiment": "B: occlusion detector (held-out)",
+    "status": "EXECUTED",
+    "dataset": "300 frames disjoint from tuning sample",
+    "n": 120000,
+    "main_metric": "P 0.706 R 0.918 F1 0.798",
+    "file": "occlusion_metrics.json"
+  },
+  {
+    "experiment": "C: camera/radar/fusion tracking",
+    "status": "VERIFIED",
+    "dataset": "raw_v2 all episodes, paired",
+    "n": 845,
+    "main_metric": "fused v_lat 0.672",
+    "file": "tracking_metrics.json"
+  },
+  {
+    "experiment": "D: fusion ablation (camera/radar/fused)",
+    "status": "EXECUTED",
+    "dataset": "raw_v2",
+    "n": 845,
+    "main_metric": "see tracking + intent tables",
+    "file": "tracking_metrics.json"
+  },
+  {
+    "experiment": "D2: literature-style baseline",
+    "status": "EXECUTED",
+    "dataset": "raw_v2",
+    "n": 1836,
+    "main_metric": "baseline F1 0.778 vs proposed 0.885 (paired)",
+    "file": "scripts/evaluate_prediction.py --baseline (stdout)"
+  },
+  {
+    "experiment": "E: hidden-target prediction",
+    "status": "PARTIALLY VERIFIED",
+    "dataset": "raw_v2 occlusion events",
+    "n": 15,
+    "main_metric": "particle vs EKF coast ADE; SAMPLE-LIMITED (n=15 events)",
+    "file": "hidden_prediction_metrics.json"
+  },
+  {
+    "experiment": "F: crossing intent",
+    "status": "VERIFIED",
+    "dataset": "raw_v2",
+    "n": 3065,
+    "main_metric": "fused F1 0.855",
+    "file": "intent_metrics.json"
+  },
+  {
+    "experiment": "G: risk engine",
+    "status": "SKIPPED",
+    "dataset": "-",
+    "n": null,
+    "main_metric": "no risk/TTC/hazard ground truth exists in the dataset",
+    "file": "risk_metrics.json"
+  },
+  {
+    "experiment": "H: fault injection",
+    "status": "EXECUTED",
+    "dataset": "raw_v2, 24 episodes",
+    "n": 10,
+    "main_metric": "6/10 detected",
+    "file": "fault_metrics.json"
+  },
+  {
+    "experiment": "I: calibration/extrinsic perturbation",
+    "status": "PARTIALLY VERIFIED",
+    "dataset": "raw_v2",
+    "n": 1,
+    "main_metric": "extrinsic_drift is the only perturbation implemented; no severity sweep exists",
+    "file": "fault_metrics.json"
+  },
+  {
+    "experiment": "J: robustness / weather",
+    "status": "PARTIALLY VERIFIED",
+    "dataset": "raw_v2 (all clear-day)",
+    "n": null,
+    "main_metric": "photometric degradation of clear-day frames ONLY; CARLA weather API non-functional on this build",
+    "file": "fault_metrics.json"
+  },
+  {
+    "experiment": "K: scenario generalisation",
+    "status": "EXECUTED",
+    "dataset": "4 scenarios, single town",
+    "n": 4,
+    "main_metric": "per-scenario occlusion performance",
+    "file": "occlusion_metrics.json -> by_scenario"
+  },
+  {
+    "experiment": "L: runtime profiling",
+    "status": "EXECUTED",
+    "dataset": "recorded frames, CARLA out of loop",
+    "n": 40,
+    "main_metric": "52.5 ms serial",
+    "file": "runtime_metrics.json"
+  },
+  {
+    "experiment": "M: multi-town generalisation",
+    "status": "SKIPPED",
+    "dataset": "-",
+    "n": null,
+    "main_metric": "excluded by explicit instruction; CARLA 0.10.0 ships only Town10HD_Opt in any case",
+    "file": "-"
+  }
+]

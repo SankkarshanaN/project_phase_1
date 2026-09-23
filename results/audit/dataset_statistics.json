@@ -1,0 +1,95 @@
+{
+  "experiment_id": "AUDIT-DATASET",
+  "data_dir": "data\\raw_v2",
+  "counts": {
+    "frames_meta": 15270,
+    "frames_images": 15270,
+    "frames_labels": 15270,
+    "episodes": 170,
+    "object_instances_total": 55803,
+    "vru_object_instances": 18096,
+    "note_denominators": {
+      "frame": "one simulation tick with a full sensor read",
+      "object_instance": "one actor observed in one frame (actor x frame)",
+      "episode": "one contiguous scenario run"
+    }
+  },
+  "integrity": {
+    "meta_image_label_counts_match": true,
+    "frames_with_zero_radar_returns": 0
+  },
+  "scenarios": {
+    "blindspot_cutin_clear_day": 3515,
+    "multi_occlusion_clear_day": 2520,
+    "occluded_pedestrian_crossing_clear_day": 2520,
+    "urban_crossing_clear_day": 6715
+  },
+  "episode_duration_frames": {
+    "mean": 89.82352941176471,
+    "median": 60.0,
+    "min": 41,
+    "max": 395,
+    "seconds_mean": 8.98235294117647
+  },
+  "object_class_distribution": {
+    "vehicle": 37707,
+    "pedestrian": 18096
+  },
+  "occlusion_tiers_object_instances": {
+    "OCCLUDED": 20912,
+    "PARTIAL": 5308,
+    "VISIBLE": 29583
+  },
+  "visibility_fraction": {
+    "mean": 0.5470597813998117,
+    "median": 0.8229166865348816,
+    "frac_exactly_zero": 0.35274089206673476,
+    "frac_exactly_one": 0.3822375141121445,
+    "distinct_values": 1049
+  },
+  "radar_returns_per_frame": {
+    "mean": 125.99626719056974,
+    "median": 131.0,
+    "p05": 87.0,
+    "p95": 150.0
+  },
+  "sensor_configuration": {
+    "camera_resolution": [
+      800,
+      600
+    ],
+    "camera_fov_deg": 90,
+    "radar": {
+      "horizontal_fov": 35,
+      "vertical_fov": 20,
+      "points_per_second": 1500,
+      "range": 100
+    },
+    "bev_grid": {
+      "size_cells": 20,
+      "extent_m": 40.0,
+      "cell_size_m": 2.0
+    },
+    "fixed_delta_seconds": 0.1,
+    "sensor_rate_hz": 10.0,
+    "note": "all sensors are read in lock-step synchronous mode, so camera and radar share one rate; this is SIMULATION rate, not pipeline FPS"
+  },
+  "crossing_intent_labels": {
+    "labelled_observations": 18096,
+    "crossing_events_positive_obs": 6663,
+    "non_crossing_obs": 11433,
+    "positive_rate": 0.3682029177718833,
+    "episodes_with_labels": 101,
+    "distinct_actors": 272,
+    "by_tier": {
+      "OCCLUDED": 8780,
+      "PARTIAL": 1929,
+      "VISIBLE": 7387
+    },
+    "note": "denominator is OBSERVATIONS (actor x frame), not episodes or crossing events; one crossing spans many observations"
+  },
+  "towns": {
+    "town": "Town10HD_Opt",
+    "note": "single town by design; CARLA 0.10.0 ships only Town10HD_Opt"
+  }
+}

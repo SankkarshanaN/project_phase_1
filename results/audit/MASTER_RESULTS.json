@@ -1,0 +1,1832 @@
+{
+  "generated_utc": "2026-09-22T07:36:00.222028+00:00",
+  "project": "Confidence-Driven Occlusion-Aware Camera-Radar Fusion (CARLA)",
+  "reproducibility": {
+    "git_commit": "385309f8db00ef7c599bcb5349205928ed3e8945",
+    "git_dirty_files": [
+      "M carla_tools/scenario_gen.py",
+      " M carla_tools/urban_world.py",
+      " M perception/risk.py",
+      " M scripts/evaluate_prediction.py",
+      " M scripts/live_demo.py",
+      "?? \"Recording 2026-09-18 084000.mp4\"",
+      "?? rec.mp4",
+      "?? rec.zip",
+      "?? results/audit/",
+      "?? scratchpad_live_demo_stderr.log",
+      "?? scratchpad_live_demo_stdout.log",
+      "?? scripts/audit/"
+    ],
+    "python": "3.12.11",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "hardware": {
+      "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "vram_total": "8.0 GiB",
+      "device_used": "cuda",
+      "cpu": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD",
+      "python": "3.12.11",
+      "torch": "2.10.0.dev20250925+cu128",
+      "platform": "Windows-11-10.0.26200-SP0"
+    },
+    "seeds": {
+      "episode_split": 0,
+      "occlusion_holdout": 1234,
+      "bootstrap": 0,
+      "sweep_sample": 0
+    },
+    "carla_limitation": "CARLA is stochastic and its weather API is non-functional on this build; live-demo runs are not bit-reproducible. All experiments in this package are OFFLINE replays of recorded data and ARE deterministic."
+  },
+  "dataset": {
+    "experiment_id": "AUDIT-DATASET",
+    "data_dir": "data\\raw_v2",
+    "counts": {
+      "frames_meta": 15270,
+      "frames_images": 15270,
+      "frames_labels": 15270,
+      "episodes": 170,
+      "object_instances_total": 55803,
+      "vru_object_instances": 18096,
+      "note_denominators": {
+        "frame": "one simulation tick with a full sensor read",
+        "object_instance": "one actor observed in one frame (actor x frame)",
+        "episode": "one contiguous scenario run"
+      }
+    },
+    "integrity": {
+      "meta_image_label_counts_match": true,
+      "frames_with_zero_radar_returns": 0
+    },
+    "scenarios": {
+      "blindspot_cutin_clear_day": 3515,
+      "multi_occlusion_clear_day": 2520,
+      "occluded_pedestrian_crossing_clear_day": 2520,
+      "urban_crossing_clear_day": 6715
+    },
+    "episode_duration_frames": {
+      "mean": 89.82352941176471,
+      "median": 60.0,
+      "min": 41,
+      "max": 395,
+      "seconds_mean": 8.98235294117647
+    },
+    "object_class_distribution": {
+      "vehicle": 37707,
+      "pedestrian": 18096
+    },
+    "occlusion_tiers_object_instances": {
+      "OCCLUDED": 20912,
+      "PARTIAL": 5308,
+      "VISIBLE": 29583
+    },
+    "visibility_fraction": {
+      "mean": 0.5470597813998117,
+      "median": 0.8229166865348816,
+      "frac_exactly_zero": 0.35274089206673476,
+      "frac_exactly_one": 0.3822375141121445,
+      "distinct_values": 1049
+    },
+    "radar_returns_per_frame": {
+      "mean": 125.99626719056974,
+      "median": 131.0,
+      "p05": 87.0,
+      "p95": 150.0
+    },
+    "sensor_configuration": {
+      "camera_resolution": [
+        800,
+        600
+      ],
+      "camera_fov_deg": 90,
+      "radar": {
+        "horizontal_fov": 35,
+        "vertical_fov": 20,
+        "points_per_second": 1500,
+        "range": 100
+      },
+      "bev_grid": {
+        "size_cells": 20,
+        "extent_m": 40.0,
+        "cell_size_m": 2.0
+      },
+      "fixed_delta_seconds": 0.1,
+      "sensor_rate_hz": 10.0,
+      "note": "all sensors are read in lock-step synchronous mode, so camera and radar share one rate; this is SIMULATION rate, not pipeline FPS"
+    },
+    "crossing_intent_labels": {
+      "labelled_observations": 18096,
+      "crossing_events_positive_obs": 6663,
+      "non_crossing_obs": 11433,
+      "positive_rate": 0.3682029177718833,
+      "episodes_with_labels": 101,
+      "distinct_actors": 272,
+      "by_tier": {
+        "OCCLUDED": 8780,
+        "PARTIAL": 1929,
+        "VISIBLE": 7387
+      },
+      "note": "denominator is OBSERVATIONS (actor x frame), not episodes or crossing events; one crossing spans many observations"
+    },
+    "towns": {
+      "town": "Town10HD_Opt",
+      "note": "single town by design; CARLA 0.10.0 ships only Town10HD_Opt"
+    }
+  },
+  "splits": {
+    "experiment_id": "AUDIT-SPLITS",
+    "method": "episode_split(val_frac=0.15, seed=0) -- grouped by EPISODE",
+    "n_crops_total": 63835,
+    "n_train_episodes": 144,
+    "n_val_episodes": 26,
+    "n_val_crops": 12552,
+    "n_train_crops": 51283,
+    "val_episodes": [
+      "blindspot_cutin_clear_day_ep103008",
+      "blindspot_cutin_clear_day_ep103012",
+      "blindspot_cutin_clear_day_ep104000",
+      "blindspot_cutin_clear_day_ep105002",
+      "blindspot_cutin_clear_day_ep106002",
+      "blindspot_cutin_clear_day_ep106003",
+      "blindspot_cutin_clear_day_ep106008",
+      "blindspot_cutin_clear_day_ep107002",
+      "blindspot_cutin_clear_day_ep107003",
+      "blindspot_cutin_clear_day_ep107007",
+      "multi_occlusion_clear_day_ep100002",
+      "multi_occlusion_clear_day_ep102004",
+      "multi_occlusion_clear_day_ep104000",
+      "multi_occlusion_clear_day_ep104003",
+      "multi_occlusion_clear_day_ep105000",
+      "multi_occlusion_clear_day_ep105002",
+      "multi_occlusion_clear_day_ep107001",
+      "multi_occlusion_clear_day_ep107002",
+      "occluded_pedestrian_crossing_clear_day_ep100003",
+      "occluded_pedestrian_crossing_clear_day_ep100004",
+      "occluded_pedestrian_crossing_clear_day_ep106003",
+      "occluded_pedestrian_crossing_clear_day_ep108001",
+      "urban_crossing_clear_day_ep102001",
+      "urban_crossing_clear_day_ep103000",
+      "urban_crossing_clear_day_ep106000",
+      "urban_crossing_clear_day_ep107001"
+    ],
+    "episode_overlap_train_val": [],
+    "leakage_detected": false,
+    "leakage_check": "PASS -- no episode appears on both sides",
+    "independent_test_set_exists": false,
+    "test_set_note": "There is NO third, untouched test split. The classifier reports validation accuracy on the 15% episode-disjoint validation split, which is also the split the best-epoch checkpoint is selected on. Model selection and reporting therefore share a split; see the audit report."
+  },
+  "classification": {
+    "experiment_id": "AUDIT-A-CLASSIFICATION",
+    "split": "episode-disjoint validation (val_frac=0.15, seed=0)",
+    "n_crops": 12552,
+    "n_val_episodes": 26,
+    "n_train_episodes": 144,
+    "checkpoint": "models\\evidential_detector.pt",
+    "accuracy": 0.96789356277884,
+    "macro_precision": 0.9598562431515529,
+    "macro_recall": 0.9713513742870298,
+    "macro_f1": 0.9652204469510993,
+    "weighted_f1": 0.9679133468502061,
+    "per_class": {
+      "vehicle": {
+        "precision": 0.9883977900552486,
+        "recall": 0.9492394764768306,
+        "f1": 0.9684229520028871,
+        "support": 5654
+      },
+      "pedestrian": {
+        "precision": 0.9346264367816092,
+        "recall": 0.9811463046757164,
+        "f1": 0.9573215599705666,
+        "support": 1326
+      },
+      "background": {
+        "precision": 0.956544502617801,
+        "recall": 0.9836683417085427,
+        "f1": 0.9699168288798442,
+        "support": 5572
+      }
+    },
+    "confusion_matrix": [
+      [
+        5367,
+        57,
+        230
+      ],
+      [
+        6,
+        1301,
+        19
+      ],
+      [
+        57,
+        34,
+        5481
+      ]
+    ],
+    "confusion_matrix_rows": "true",
+    "confusion_matrix_cols": "predicted",
+    "class_order": [
+      "vehicle",
+      "pedestrian",
+      "background"
+    ]
+  },
+  "uncertainty": {
+    "experiment_id": "AUDIT-A-UNCERTAINTY",
+    "n_crops": 12552,
+    "expected_calibration_error": 0.062217515353718875,
+    "ece_bins": 15,
+    "brier_score_multiclass": 0.06131462109323572,
+    "negative_log_likelihood": 0.1520088165998459,
+    "error_detection_auroc": 0.9424132366376385,
+    "area_under_risk_coverage": 0.0024573237207248327,
+    "reliability_bins": [
+      {
+        "lo": 0.0,
+        "hi": 0.06666666666666667,
+        "n": 0,
+        "acc": null,
+        "conf": null
+      },
+      {
+        "lo": 0.06666666666666667,
+        "hi": 0.13333333333333333,
+        "n": 0,
+        "acc": null,
+        "conf": null
+      },
+      {
+        "lo": 0.13333333333333333,
+        "hi": 0.2,
+        "n": 0,
+        "acc": null,
+        "conf": null
+      },
+      {
+        "lo": 0.2,
+        "hi": 0.26666666666666666,
+        "n": 0,
+        "acc": null,
+        "conf": null
+      },
+      {
+        "lo": 0.26666666666666666,
+        "hi": 0.3333333333333333,
+        "n": 0,
+        "acc": null,
+        "conf": null
+      },
+      {
+        "lo": 0.3333333333333333,
+        "hi": 0.4,
+        "n": 339,
+        "acc": 0.6076696165191741,
+        "conf": 0.3463952540472194
+      },
+      {
+        "lo": 0.4,
+        "hi": 0.4666666666666667,
+        "n": 90,
+        "acc": 0.7,
+        "conf": 0.4313407709201177
+      },
+      {
+        "lo": 0.4666666666666667,
+        "hi": 0.5333333333333333,
+        "n": 71,
+        "acc": 0.6901408450704225,
+        "conf": 0.5021206845699901
+      },
+      {
+        "lo": 0.5333333333333333,
+        "hi": 0.6,
+        "n": 82,
+        "acc": 0.7560975609756098,
+        "conf": 0.5645321033349852
+      },
+      {
+        "lo": 0.6,
+        "hi": 0.6666666666666666,
+        "n": 95,
+        "acc": 0.6947368421052632,
+        "conf": 0.6337251845159029
+      },
+      {
+        "lo": 0.6666666666666666,
+        "hi": 0.7333333333333333,
+        "n": 156,
+        "acc": 0.8525641025641025,
+        "conf": 0.7026862322519987
+      },
+      {
+        "lo": 0.7333333333333333,
+        "hi": 0.8,
+        "n": 294,
+        "acc": 0.8843537414965986,
+        "conf": 0.7711248120077613
+      },
+      {
+        "lo": 0.8,
+        "hi": 0.8666666666666667,
+        "n": 583,
+        "acc": 0.9039451114922813,
+        "conf": 0.8379549146925401
+      },
+      {
+        "lo": 0.8666666666666667,
+        "hi": 0.9333333333333333,
+        "n": 2658,
+        "acc": 0.9785553047404063,
+        "conf": 0.9101831960086091
+      },
+      {
+        "lo": 0.9333333333333333,
+        "hi": 1.0,
+        "n": 8184,
+        "acc": 0.9997556207233627,
+        "conf": 0.9561982644122833
+      }
+    ],
+    "uncertainty_summary": {
+      "mean": 0.1396719217300415,
+      "median": 0.07976263016462326,
+      "p05": 0.04273807257413864,
+      "p95": 0.5053098201751709
+    },
+    "uncertainty_by_tier": {
+      "PARTIAL": {
+        "n": 1269,
+        "accuracy": 0.8857368006304176,
+        "mean_uncertainty": 0.21580198407173157,
+        "median_uncertainty": 0.10745225846767426,
+        "mean_confidence": 0.8531201481819153
+      },
+      "VISIBLE": {
+        "n": 5711,
+        "accuracy": 0.9707581859569252,
+        "mean_uncertainty": 0.13336224853992462,
+        "median_uncertainty": 0.07386907190084457,
+        "mean_confidence": 0.9101033210754395
+      }
+    },
+    "crops_without_tier_match": 5572,
+    "tier_coverage_note": "Background crops have no meta object and are unmatched by construction. Fully-OCCLUDED objects are absent from labels/ by dataset design, so this table cannot compare against fully-hidden crops -- only VISIBLE vs PARTIAL.",
+    "interpretation": "error_detection_auroc is the operative calibration claim: it is the probability that a randomly chosen misclassified crop carries higher uncertainty than a randomly chosen correct one. 0.5 would mean the uncertainty output carries no information about correctness."
+  },
+  "occlusion": {
+    "experiment_id": "AUDIT-B-OCCLUSION-HOLDOUT",
+    "operating_point": {
+      "GROUND_QUANTILE_q": 0.01,
+      "shadow_tolerance_tau": 0.001
+    },
+    "operating_point_provenance": "q and tau were selected as best-F1 on the sweep's 120-frame seed-0 sample and the manuscript reports the score from that same sample. This run holds the operating point FIXED and evaluates it on frames excluded from that sample.",
+    "evaluation_set": {
+      "n_frames_evaluated": 300,
+      "n_cells": 120000,
+      "sampling_seed": 1234,
+      "disjoint_from_sweep": true,
+      "sweep_frames_excluded": 120,
+      "denominator": "BEV grid CELLS (20x20=400 per frame) for P/R/F1; frames for CI"
+    },
+    "heldout": {
+      "precision_occluded": 0.7061285462248722,
+      "recall_occluded": 0.9177839149719642,
+      "f1_occluded": 0.798163000917044,
+      "iou_occluded": 0.6641191788288016,
+      "cell_agreement": 0.7689,
+      "tp": 54833,
+      "fp": 22820,
+      "fn": 4912,
+      "tn": 37435,
+      "per_frame_f1_mean": 0.7783558578926859,
+      "per_frame_f1_ci95": [
+        0.7603564084049437,
+        0.7950885419676648
+      ],
+      "n_bootstrap": 2000
+    },
+    "sweep_sample_reported": {
+      "precision_occluded": 0.7268598116451538,
+      "recall_occluded": 0.9174089068825911,
+      "f1_occluded": 0.8110932936257946,
+      "cell_agreement": 0.7801,
+      "source": "results/shadow_tolerance_sweep.json (tuning sample)"
+    },
+    "optimism_gap": {
+      "precision": 0.020731265420281586,
+      "recall": -0.0003750080893730745,
+      "f1": 0.01293029270875068,
+      "note": "positive = tuning sample flattered the operating point"
+    },
+    "confusion_gt_vs_pred_occluded": {
+      "rows_gt": [
+        "VISIBLE",
+        "OCCLUDED",
+        "UNKNOWN"
+      ],
+      "cols_pred": [
+        "not-OCCLUDED",
+        "OCCLUDED"
+      ],
+      "matrix": [
+        [
+          3835,
+          22820
+        ],
+        [
+          4912,
+          54833
+        ],
+        [
+          33600,
+          0
+        ]
+      ],
+      "note": "The two modules' label enums differ (occlusion_mask.UNKNOWN==2 vs occlusion_grid.EMPTY==2), so only the OCCLUDED class is comparable and the prediction axis is collapsed to OCCLUDED / not-OCCLUDED."
+    },
+    "by_scenario": {
+      "blindspot_cutin_clear_day": {
+        "precision": 0.5677714508200711,
+        "recall": 0.9195239221250099,
+        "f1": 0.7020521153036048,
+        "cell_agreement": 0.6905625,
+        "n_cells": 32000
+      },
+      "multi_occlusion_clear_day": {
+        "precision": 0.8108940585231418,
+        "recall": 0.9251826505132711,
+        "f1": 0.8642764578833694,
+        "cell_agreement": 0.8328723404255319,
+        "n_cells": 18800
+      },
+      "occluded_pedestrian_crossing_clear_day": {
+        "precision": 0.8635906883269134,
+        "recall": 0.9162224591329069,
+        "f1": 0.8891283731356152,
+        "cell_agreement": 0.8602173913043478,
+        "n_cells": 18400
+      },
+      "urban_crossing_clear_day": {
+        "precision": 0.6960733542510739,
+        "recall": 0.9144023370282924,
+        "f1": 0.7904386329043863,
+        "cell_agreement": 0.761496062992126,
+        "n_cells": 50800
+      }
+    },
+    "by_occlusion_severity": {
+      "0.00-0.05": {
+        "precision": 0.054758800521512385,
+        "recall": 0.9333333333333333,
+        "f1": 0.10344827586206896,
+        "n_frames": 3
+      },
+      "0.05-0.20": {
+        "precision": 0.2,
+        "recall": 0.9132653061224489,
+        "f1": 0.32813932172318977,
+        "n_frames": 7
+      },
+      "0.20-0.50": {
+        "precision": 0.5448170731707317,
+        "recall": 0.9288907370828569,
+        "f1": 0.6868057957646335,
+        "n_frames": 127
+      },
+      "0.50-0.65": {
+        "precision": 0.8057981711567639,
+        "recall": 0.915660966404175,
+        "f1": 0.8572238701797243,
+        "n_frames": 94
+      },
+      "0.65-1.01": {
+        "precision": 0.9443296666480541,
+        "recall": 0.9088075662313934,
+        "f1": 0.926228161454625,
+        "n_frames": 69
+      }
+    },
+    "severity_definition": "fraction of GT grid cells that are OCCLUDED in that frame"
+  },
+  "tracking": {
+    "experiment_id": "AUDIT-C-TRACKING",
+    "detections": "ground-truth boxes (occluded actors withheld, filter coasts)",
+    "paired_observations": 845,
+    "episodes_contributing_to_paired": 44,
+    "episodes_replayed": 170,
+    "denominator": "paired observation = one (episode, frame, actor) tracked by ALL THREE modes AND moving laterally >= 0.3 m/s",
+    "bootstrap": {
+      "n_resamples": 2000,
+      "unit": "episode",
+      "seed": 0,
+      "why": "consecutive frames within an episode are correlated; frame-level CIs would be far too narrow"
+    },
+    "paired_metrics": {
+      "camera": {
+        "v_lat": {
+          "mae": 0.8186882158013516,
+          "rmse": 1.0384102839812344,
+          "median": 0.689585370082459,
+          "p95": 2.1249762041811255,
+          "n": 845
+        },
+        "v_fwd": {
+          "mae": 1.0480352973104725,
+          "rmse": 2.15639147380848,
+          "median": 0.4915096314748431,
+          "p95": 6.064915574292747,
+          "n": 845
+        },
+        "position": {
+          "mae": 2.3268949637669714,
+          "rmse": 2.646932352924267,
+          "median": 2.105094434225313,
+          "p95": 4.520234051918772,
+          "n": 845
+        },
+        "bootstrap_episode_level": {
+          "lat": {
+            "mean": 0.8205313431114765,
+            "std": 0.06997613751175678,
+            "ci95": [
+              0.6911205222964432,
+              0.9638045658019183
+            ]
+          },
+          "fwd": {
+            "mean": 1.0485398683382097,
+            "std": 0.2299425555221364,
+            "ci95": [
+              0.6474118184439316,
+              1.5342226721842667
+            ]
+          },
+          "pos": {
+            "mean": 2.339670876879483,
+            "std": 0.16729259770744548,
+            "ci95": [
+              2.0318406403405693,
+              2.673042585280698
+            ]
+          }
+        }
+      },
+      "radar": {
+        "v_lat": {
+          "mae": 1.6826205448638758,
+          "rmse": 1.7193089006483808,
+          "median": 1.8528424501419067,
+          "p95": 2.0,
+          "n": 845
+        },
+        "v_fwd": {
+          "mae": 0.15536517224110266,
+          "rmse": 0.23544173355606993,
+          "median": 0.10146479208527698,
+          "p95": 0.4526292342567387,
+          "n": 845
+        },
+        "position": {
+          "mae": 2.456512186673639,
+          "rmse": 2.6763456838511317,
+          "median": 2.2633868029649595,
+          "p95": 4.410413019225319,
+          "n": 845
+        },
+        "bootstrap_episode_level": {
+          "lat": {
+            "mean": 1.6827798780189658,
+            "std": 0.05450168053666046,
+            "ci95": [
+              1.5671046773030575,
+              1.7822436728365165
+            ]
+          },
+          "fwd": {
+            "mean": 0.155794251966194,
+            "std": 0.015579247124286287,
+            "ci95": [
+              0.12348376193994938,
+              0.1841284540024777
+            ]
+          },
+          "pos": {
+            "mean": 2.4550273726724936,
+            "std": 0.0864982239056395,
+            "ci95": [
+              2.276978964826683,
+              2.6248780510265033
+            ]
+          }
+        }
+      },
+      "fused": {
+        "v_lat": {
+          "mae": 0.6720891572772818,
+          "rmse": 1.101303532893903,
+          "median": 0.34124680483375114,
+          "p95": 2.476001622840965,
+          "n": 845
+        },
+        "v_fwd": {
+          "mae": 0.1986370220613754,
+          "rmse": 0.3136649691229198,
+          "median": 0.1343319551773187,
+          "p95": 0.651235244994013,
+          "n": 845
+        },
+        "position": {
+          "mae": 2.031980043902652,
+          "rmse": 2.2807508387669566,
+          "median": 1.7146776375135748,
+          "p95": 4.3799054098344525,
+          "n": 845
+        },
+        "bootstrap_episode_level": {
+          "lat": {
+            "mean": 0.6782516791600403,
+            "std": 0.11068955005032338,
+            "ci95": [
+              0.4885442962298442,
+              0.9103048381991414
+            ]
+          },
+          "fwd": {
+            "mean": 0.19994535700570912,
+            "std": 0.02266204776015212,
+            "ci95": [
+              0.15618224333536032,
+              0.24321925233947742
+            ]
+          },
+          "pos": {
+            "mean": 2.0342417052935917,
+            "std": 0.14033234020744512,
+            "ci95": [
+              1.772289381490834,
+              2.3382592563480977
+            ]
+          }
+        }
+      }
+    },
+    "unpaired_counts": {
+      "camera": {
+        "n_obs": 3665,
+        "n_moving": 2099,
+        "id_switches": 28,
+        "n_occluded_obs": 447
+      },
+      "radar": {
+        "n_obs": 2491,
+        "n_moving": 1455,
+        "id_switches": 19,
+        "n_occluded_obs": 133
+      },
+      "fused": {
+        "n_obs": 3065,
+        "n_moving": 1811,
+        "id_switches": 40,
+        "n_occluded_obs": 173
+      }
+    },
+    "unpaired_warning": "Unpaired means are NOT comparable across modes -- each mode tracks a different subset of actors. Counts are reported because coverage is a real property; the paired block is the comparison."
+  },
+  "hidden_prediction": {
+    "experiment_id": "AUDIT-E-HIDDEN-TARGET",
+    "status": "EXECUTED",
+    "ground_truth": "recorded amodal obj_xy_ego for actors whose tier is OCCLUDED; available only because fully-hidden actors are deliberately retained in meta/ (they were dropped in dataset v1)",
+    "protocol": "seed at first OCCLUDED frame from the last confirmed EKF estimate (mirrors pipeline._handoff), then propagate both predictors with no measurement; score against amodal truth while still hidden",
+    "methods_compared": {
+      "particle": "perception.particle_tracker.HiddenHazardTracker (mean_position)",
+      "ekf_coast": "constant-velocity dead reckoning with ego-motion compensation, i.e. what perception.tracking does while coasting"
+    },
+    "n_occlusion_events_scored": 15,
+    "n_episodes_with_events": 10,
+    "miss_threshold_m": 2.0,
+    "denominator": "one sample = one (occlusion event, horizon) pair",
+    "by_horizon": {
+      "0.5s": {
+        "particle": {
+          "n": 15,
+          "ade_mean_m": 7.848984968513341,
+          "rmse_m": 12.49890402350524,
+          "median_m": 5.253965300451183,
+          "p95_m": 20.930006472052384,
+          "miss_rate_at_2m": 1.0
+        },
+        "ekf_coast": {
+          "n": 15,
+          "ade_mean_m": 8.154018951713981,
+          "rmse_m": 12.712780803005785,
+          "median_m": 5.305138308818134,
+          "p95_m": 21.18196130594935,
+          "miss_rate_at_2m": 0.9333333333333333
+        },
+        "particle_position_spread_m": {
+          "mean": 13.201204819268288,
+          "median": 15.346735665778038
+        },
+        "paired_particle_minus_ekf": {
+          "mean_difference_m": -0.3050339832006382,
+          "ci95": [
+            -0.7684319972312663,
+            0.10260058459486256
+          ],
+          "excludes_zero": false,
+          "better": "particle",
+          "bootstrap_unit": "event (NOT episode -- see note)"
+        }
+      },
+      "1.0s": {
+        "particle": {
+          "n": 11,
+          "ade_mean_m": 10.105512744823976,
+          "rmse_m": 15.292900573856109,
+          "median_m": 6.548347819804037,
+          "p95_m": 28.530456706700416,
+          "miss_rate_at_2m": 1.0
+        },
+        "ekf_coast": {
+          "n": 11,
+          "ade_mean_m": 11.003952423865618,
+          "rmse_m": 16.428089978884792,
+          "median_m": 6.912588267975813,
+          "p95_m": 30.26353991027282,
+          "miss_rate_at_2m": 1.0
+        },
+        "particle_position_spread_m": {
+          "mean": 12.45307005959745,
+          "median": 14.030294003275596
+        },
+        "paired_particle_minus_ekf": {
+          "mean_difference_m": -0.8984396790416427,
+          "ci95": [
+            -2.0006925698927067,
+            -0.011386896962866717
+          ],
+          "excludes_zero": true,
+          "better": "particle",
+          "bootstrap_unit": "event (NOT episode -- see note)"
+        }
+      },
+      "1.5s": {
+        "particle": {
+          "n": 4,
+          "ade_mean_m": 5.714430812739153,
+          "rmse_m": 6.511713645064823,
+          "median_m": 4.947942626467443,
+          "p95_m": 9.936539654408055,
+          "miss_rate_at_2m": 1.0
+        },
+        "ekf_coast": {
+          "n": 4,
+          "ade_mean_m": 6.688530302012248,
+          "rmse_m": 7.113354912380207,
+          "median_m": 5.586586570744519,
+          "p95_m": 10.077218728347471,
+          "miss_rate_at_2m": 1.0
+        },
+        "particle_position_spread_m": {
+          "mean": 6.616961581936463,
+          "median": 3.820144921070791
+        },
+        "paired_particle_minus_ekf": {
+          "mean_difference_m": -0.9740994892730958,
+          "ci95": [
+            -2.7035279289098635,
+            -0.03615194367031371
+          ],
+          "excludes_zero": true,
+          "better": "particle",
+          "bootstrap_unit": "event (NOT episode -- see note)"
+        }
+      },
+      "2.0s": {
+        "particle": {
+          "n": 3,
+          "ade_mean_m": 7.1745958630754245,
+          "rmse_m": 7.844960971277485,
+          "median_m": 5.369672194056977,
+          "p95_m": 11.008544970320177,
+          "miss_rate_at_2m": 1.0
+        },
+        "ekf_coast": {
+          "n": 3,
+          "ade_mean_m": 7.426597571372906,
+          "rmse_m": 8.022607691702158,
+          "median_m": 5.351646789493128,
+          "p95_m": 11.080634020447484,
+          "miss_rate_at_2m": 1.0
+        },
+        "particle_position_spread_m": {
+          "mean": 8.2608684132873,
+          "median": 3.918289238490764
+        },
+        "paired_particle_minus_ekf": {
+          "mean_difference_m": -0.25200170829748164,
+          "ci95": [
+            -0.6919287621410799,
+            0.018025404563848824
+          ],
+          "excludes_zero": false,
+          "better": "particle",
+          "bootstrap_unit": "event (NOT episode -- see note)"
+        }
+      },
+      "3.0s": {
+        "particle": {
+          "n": 1,
+          "ade_mean_m": 10.092770581899993,
+          "rmse_m": 10.092770581899993,
+          "median_m": 10.092770581899993,
+          "p95_m": 10.092770581899993,
+          "miss_rate_at_2m": 1.0
+        },
+        "ekf_coast": {
+          "n": 1,
+          "ade_mean_m": 10.229733563134756,
+          "rmse_m": 10.229733563134756,
+          "median_m": 10.229733563134756,
+          "p95_m": 10.229733563134756,
+          "miss_rate_at_2m": 1.0
+        },
+        "particle_position_spread_m": {
+          "mean": 21.3433573069288,
+          "median": 21.3433573069288
+        },
+        "paired_particle_minus_ekf": {
+          "mean_difference_m": -0.13696298123476325,
+          "ci95": [
+            -0.13696298123476325,
+            -0.13696298123476325
+          ],
+          "excludes_zero": true,
+          "better": "particle",
+          "bootstrap_unit": "event (NOT episode -- see note)"
+        }
+      }
+    },
+    "caveats": [
+      "Events, not episodes, are the bootstrap unit here -- several events can come from one episode, so these CIs are less conservative than the episode-level ones used for the tracking comparison.",
+      "FDE is not reported separately: an event is scored only while the actor is still hidden, so the last scored horizon IS the final displacement for that event and reporting it twice under another name would be double-counting.",
+      "The particle filter's own emergence prediction is not scored here; this measures position belief only."
+    ]
+  },
+  "intent": {
+    "experiment_id": "AUDIT-F-INTENT",
+    "threshold": 0.5,
+    "by_mode": {
+      "camera": {
+        "n": 3665,
+        "positive_rate": 0.522237380627558,
+        "roc_auc": 0.7887248486758126,
+        "pr_auc": 0.8041187865172245,
+        "precision": 0.8334443704197202,
+        "recall": 0.6536050156739812,
+        "f1": 0.7326500732064423,
+        "specificity": 0.8572244431753284,
+        "balanced_accuracy": 0.7554147294246548,
+        "mean_lead_time_s": 3.533227767704633,
+        "n_with_lead_time": 326,
+        "by_tier": {
+          "0": {
+            "n": 467,
+            "positive_rate": 0.40471092077087795,
+            "auc": 0.7113452095466484,
+            "precision": 0.6814814814814815,
+            "recall": 0.48677248677248675,
+            "f1": 0.5679012345679013
+          },
+          "1": {
+            "n": 269,
+            "positive_rate": 0.15985130111524162,
+            "auc": 0.8041263634492694,
+            "precision": 0.6774193548387096,
+            "recall": 0.4883720930232558,
+            "f1": 0.5675675675675677
+          },
+          "2": {
+            "n": 2929,
+            "positive_rate": 0.5742574257425742,
+            "auc": 0.7909472627290038,
+            "precision": 0.8524344569288389,
+            "recall": 0.6765755053507729,
+            "f1": 0.7543917799138217
+          }
+        },
+        "tier_key": "0=OCCLUDED 1=PARTIAL 2=VISIBLE"
+      },
+      "radar": {
+        "n": 2491,
+        "positive_rate": 0.6463267763950221,
+        "roc_auc": 0.7425345985998406,
+        "pr_auc": 0.8285154011674036,
+        "precision": 1.0,
+        "recall": 0.018012422360248446,
+        "f1": 0.03538743136058572,
+        "specificity": 1.0,
+        "balanced_accuracy": 0.5090062111801242,
+        "mean_lead_time_s": 2.8458467872621225,
+        "n_with_lead_time": 241,
+        "by_tier": {
+          "0": {
+            "n": 142,
+            "positive_rate": 0.1056338028169014,
+            "auc": 0.7829396325459318,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN
+          },
+          "1": {
+            "n": 47,
+            "positive_rate": 0.574468085106383,
+            "auc": 0.7305555555555555,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN
+          },
+          "2": {
+            "n": 2302,
+            "positive_rate": 0.6811468288444831,
+            "auc": 0.7451690485458489,
+            "precision": 1.0,
+            "recall": 0.018494897959183673,
+            "f1": 0.036318096430807766
+          }
+        },
+        "tier_key": "0=OCCLUDED 1=PARTIAL 2=VISIBLE"
+      },
+      "fused": {
+        "n": 3065,
+        "positive_rate": 0.5536704730831974,
+        "roc_auc": 0.872895322671243,
+        "pr_auc": 0.8662242641396701,
+        "precision": 0.8181818181818182,
+        "recall": 0.8962875662934591,
+        "f1": 0.8554555680539934,
+        "specificity": 0.7529239766081871,
+        "balanced_accuracy": 0.824605771450823,
+        "mean_lead_time_s": 3.007091506853433,
+        "n_with_lead_time": 269,
+        "by_tier": {
+          "0": {
+            "n": 186,
+            "positive_rate": 0.22043010752688172,
+            "auc": 0.6353238015138772,
+            "precision": 0.3291139240506329,
+            "recall": 0.6341463414634146,
+            "f1": 0.43333333333333335
+          },
+          "1": {
+            "n": 150,
+            "positive_rate": 0.14,
+            "auc": 0.7356958287190846,
+            "precision": 0.3181818181818182,
+            "recall": 0.3333333333333333,
+            "f1": 0.3255813953488372
+          },
+          "2": {
+            "n": 2729,
+            "positive_rate": 0.599120556980579,
+            "auc": 0.8803887202365978,
+            "precision": 0.8464163822525598,
+            "recall": 0.9100917431192661,
+            "f1": 0.8770999115826702
+          }
+        },
+        "tier_key": "0=OCCLUDED 1=PARTIAL 2=VISIBLE"
+      }
+    },
+    "paired": {
+      "n": 1459,
+      "camera": {
+        "roc_auc": 0.7892505527950833,
+        "precision": 0.833922261484099,
+        "recall": 0.7321613236814891,
+        "f1": 0.7797356828193833
+      },
+      "radar": {
+        "roc_auc": 0.7400759620315955,
+        "precision": 1.0,
+        "recall": 0.012409513960703205,
+        "f1": 0.024514811031664963
+      },
+      "fused": {
+        "roc_auc": 0.9075865345002985,
+        "precision": 0.8738049713193117,
+        "recall": 0.9451913133402275,
+        "f1": 0.9080973671137605
+      }
+    }
+  },
+  "risk": {
+    "experiment_id": "AUDIT-G-RISK",
+    "status": "SKIPPED",
+    "reason": "No risk / TTC / hazard ground truth exists in the dataset. perception.risk.assess() produces a score and an ADAS action, but scoring those requires a per-frame label for whether the situation was genuinely dangerous, and no such label is recorded. Deriving one (e.g. by thresholding distance or TTC) would be inventing the ground truth the metric is meant to test against, which this audit will not do.",
+    "meta_keys_present": [
+      "ego_vx",
+      "ego_vy",
+      "ego_x",
+      "ego_y",
+      "ego_yaw_rad",
+      "ego_z",
+      "episode_id",
+      "frame_idx",
+      "obj_actor_id",
+      "obj_box_px",
+      "obj_class",
+      "obj_is_vru",
+      "obj_tier",
+      "obj_truncation",
+      "obj_vel_ego",
+      "obj_visibility",
+      "obj_xy_ego",
+      "occ_grid",
+      "radar_pts",
+      "scenario_type",
+      "sem_grid",
+      "sim_time",
+      "true_occ_grid",
+      "weather_name"
+    ],
+    "risk_like_keys_found": [],
+    "dataset_level_files": [
+      "intent_labels.npz"
+    ],
+    "what_would_be_needed": [
+      "a per-frame or per-event label of genuine hazard/no-hazard, or",
+      "recorded time-to-collision ground truth, or",
+      "logged collision/near-miss events with timestamps to score warnings against"
+    ],
+    "note": "The collision sensor exists in the sensor rig (carla_tools.sensors), so such labels COULD be recorded in a future collection, but they are not present in data/raw_v2 and cannot be recovered from it after the fact."
+  },
+  "fault_injection": {
+    "experiment_id": "AUDIT-H-FAULTS",
+    "status": "EXECUTED",
+    "source_log": "results\\audit\\logs\\fault_injection.log",
+    "command": "scripts/adversarial_test.py --data-dir data/raw_v2 --max-episodes 24",
+    "n_conditions_total": 11,
+    "n_faults_excluding_clean": 10,
+    "clean_baseline": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.152,
+      "v_lat_mae_ms": 0.882,
+      "hidden_rmse_m": 3.242,
+      "intent_auc": 0.86,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": null
+    },
+    "per_condition": {
+      "clean": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.152,
+        "v_lat_mae_ms": 0.882,
+        "hidden_rmse_m": 3.242,
+        "intent_auc": 0.86,
+        "camera_health": 0.98,
+        "radar_health_raw": "0.88",
+        "detected_by_health_monitor": null
+      },
+      "darkness": {
+        "n_detections": 64,
+        "pos_rmse_m": 2.579,
+        "v_lat_mae_ms": 0.368,
+        "hidden_rmse_m": 3.598,
+        "intent_auc": NaN,
+        "camera_health": 0.05,
+        "radar_health_raw": "0.89",
+        "detected_by_health_monitor": true
+      },
+      "fog": {
+        "n_detections": 1098,
+        "pos_rmse_m": 2.079,
+        "v_lat_mae_ms": 0.898,
+        "hidden_rmse_m": 3.242,
+        "intent_auc": 0.867,
+        "camera_health": 0.05,
+        "radar_health_raw": "0.88",
+        "detected_by_health_monitor": true
+      },
+      "blur": {
+        "n_detections": 1088,
+        "pos_rmse_m": 2.103,
+        "v_lat_mae_ms": 0.891,
+        "hidden_rmse_m": 3.242,
+        "intent_auc": 0.87,
+        "camera_health": 0.05,
+        "radar_health_raw": "0.88",
+        "detected_by_health_monitor": true
+      },
+      "noise": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.152,
+        "v_lat_mae_ms": 0.882,
+        "hidden_rmse_m": 3.242,
+        "intent_auc": 0.86,
+        "camera_health": 0.05,
+        "radar_health_raw": "0.88",
+        "detected_by_health_monitor": true
+      },
+      "lens_blocked": {
+        "n_detections": 813,
+        "pos_rmse_m": 2.257,
+        "v_lat_mae_ms": 0.671,
+        "hidden_rmse_m": 3.418,
+        "intent_auc": 0.861,
+        "camera_health": 0.39,
+        "radar_health_raw": "0.87",
+        "detected_by_health_monitor": true
+      },
+      "radar_dropout": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.267,
+        "v_lat_mae_ms": 0.656,
+        "hidden_rmse_m": 3.185,
+        "intent_auc": 0.919,
+        "camera_health": 0.97,
+        "radar_health_raw": "0.42",
+        "detected_by_health_monitor": true
+      },
+      "radar_clutter": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.286,
+        "v_lat_mae_ms": 1.04,
+        "hidden_rmse_m": 2.769,
+        "intent_auc": 0.879,
+        "camera_health": 0.98,
+        "radar_health_raw": "0.97",
+        "detected_by_health_monitor": false
+      },
+      "radar_bias": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.247,
+        "v_lat_mae_ms": 1.045,
+        "hidden_rmse_m": 3.346,
+        "intent_auc": 0.852,
+        "camera_health": 0.98,
+        "radar_health_raw": "0.88",
+        "detected_by_health_monitor": false
+      },
+      "extrinsic_drift": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.26,
+        "v_lat_mae_ms": 0.831,
+        "hidden_rmse_m": 3.957,
+        "intent_auc": 0.931,
+        "camera_health": 0.98,
+        "radar_health_raw": "0.89",
+        "detected_by_health_monitor": false
+      },
+      "radar_clutter_onset": {
+        "n_detections": 1113,
+        "pos_rmse_m": 2.418,
+        "v_lat_mae_ms": 1.209,
+        "hidden_rmse_m": 3.139,
+        "intent_auc": 0.874,
+        "camera_health": 0.98,
+        "radar_health_raw": "0.96->0.91",
+        "detected_by_health_monitor": false
+      }
+    },
+    "degradation_vs_clean": {
+      "darkness": {
+        "delta_pos_rmse_m": 0.428,
+        "delta_intent_auc": null,
+        "detections_lost": 1049
+      },
+      "fog": {
+        "delta_pos_rmse_m": -0.073,
+        "delta_intent_auc": 0.007,
+        "detections_lost": 15
+      },
+      "blur": {
+        "delta_pos_rmse_m": -0.049,
+        "delta_intent_auc": 0.01,
+        "detections_lost": 25
+      },
+      "noise": {
+        "delta_pos_rmse_m": 0.0,
+        "delta_intent_auc": 0.0,
+        "detections_lost": 0
+      },
+      "lens_blocked": {
+        "delta_pos_rmse_m": 0.105,
+        "delta_intent_auc": 0.001,
+        "detections_lost": 300
+      },
+      "radar_dropout": {
+        "delta_pos_rmse_m": 0.116,
+        "delta_intent_auc": 0.059,
+        "detections_lost": 0
+      },
+      "radar_clutter": {
+        "delta_pos_rmse_m": 0.134,
+        "delta_intent_auc": 0.019,
+        "detections_lost": 0
+      },
+      "radar_bias": {
+        "delta_pos_rmse_m": 0.096,
+        "delta_intent_auc": -0.008,
+        "detections_lost": 0
+      },
+      "extrinsic_drift": {
+        "delta_pos_rmse_m": 0.108,
+        "delta_intent_auc": 0.071,
+        "detections_lost": 0
+      },
+      "radar_clutter_onset": {
+        "delta_pos_rmse_m": 0.266,
+        "delta_intent_auc": 0.014,
+        "detections_lost": 0
+      }
+    },
+    "detected_by_health_monitor": [
+      "blur",
+      "darkness",
+      "fog",
+      "lens_blocked",
+      "noise",
+      "radar_dropout"
+    ],
+    "not_detected_by_health_monitor": [
+      "extrinsic_drift",
+      "radar_bias",
+      "radar_clutter",
+      "radar_clutter_onset"
+    ],
+    "n_detected": 6,
+    "n_not_detected": 4,
+    "silent_failures_reported_by_script": [
+      "radar_clutter",
+      "radar_bias",
+      "radar_clutter_onset"
+    ],
+    "silent_failure_definition": "the script counts a fault as a SILENT FAILURE only if it measurably degraded something AND health stayed >= 0.6; a fault that changed nothing measurable is not counted as survived",
+    "denominator_warning": "The manuscript's '5 of 7 faults detected' uses a different denominator from this run, which injects 10 fault conditions (darkness, fog, blur, noise, lens_blocked, radar_dropout, radar_clutter, radar_bias, extrinsic_drift, radar_clutter_onset). Any claim of the form 'N of M' must state which M."
+  },
+  "runtime": {
+    "experiment_id": "AUDIT-J-RUNTIME",
+    "scope": "perception modules only, replayed on recorded frames; CARLA is NOT in the loop and contributes nothing to these timings",
+    "n_frames_timed": 40,
+    "warmup_calls": 3,
+    "hardware": {
+      "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "vram_total": "8.0 GiB",
+      "device_used": "cuda",
+      "cpu": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD",
+      "python": "3.12.11",
+      "torch": "2.10.0.dev20250925+cu128",
+      "platform": "Windows-11-10.0.26200-SP0"
+    },
+    "input": {
+      "camera_resolution": [
+        800,
+        600
+      ],
+      "crop_size": 64,
+      "bev_grid": 20
+    },
+    "stages": {
+      "yolov8n_detect": {
+        "mean_ms": 8.87487000291003,
+        "median_ms": 8.508700033416972,
+        "p95_ms": 10.816679970594121,
+        "n_calls": 40,
+        "implied_fps_if_alone": 112.6777067914352
+      },
+      "evidential_head_per_crop": {
+        "mean_ms": 0.6038250037818216,
+        "median_ms": 0.5747000104747713,
+        "p95_ms": 0.7440350425895297,
+        "n_calls": 40,
+        "implied_fps_if_alone": 1656.1089615979654
+      },
+      "midas_depth": {
+        "mean_ms": 16.29727749968879,
+        "median_ms": 16.322450013831258,
+        "p95_ms": 17.2194200247759,
+        "n_calls": 40,
+        "implied_fps_if_alone": 61.359941868762796
+      },
+      "occlusion_grid_given_disparity": {
+        "mean_ms": 0.6925949986907654,
+        "median_ms": 0.6901499873492867,
+        "p95_ms": 0.7120700087398291,
+        "n_calls": 40,
+        "implied_fps_if_alone": 1443.8452513955951
+      },
+      "radar_confidence": {
+        "mean_ms": 0.024287504493258893,
+        "median_ms": 0.024150009267032146,
+        "p95_ms": 0.025660020764917132,
+        "n_calls": 40,
+        "implied_fps_if_alone": 41173.435511975076
+      },
+      "ekf_tracking_step": {
+        "mean_ms": 0.13352249807212502,
+        "median_ms": 0.12989999959245324,
+        "p95_ms": 0.1505999796791002,
+        "n_calls": 40,
+        "implied_fps_if_alone": 7489.37455813498
+      },
+      "particle_filter_step_400p": {
+        "mean_ms": 0.1121799970860593,
+        "median_ms": 0.11940003605559468,
+        "p95_ms": 0.14585499884560701,
+        "n_calls": 40,
+        "implied_fps_if_alone": 8914.245195004296
+      },
+      "sensor_health_update": {
+        "mean_ms": 25.76163750345586,
+        "median_ms": 25.86870000232011,
+        "p95_ms": 26.862739978241734,
+        "n_calls": 40,
+        "implied_fps_if_alone": 38.81740824378313
+      }
+    },
+    "serial_sum_mean_ms": 52.50019500817871,
+    "implied_fps_serial_sum": 19.047548296615197,
+    "important_distinction": "implied_fps_serial_sum assumes every stage runs every frame in series. The live demo does NOT do that -- MiDaS is refreshed every 3rd frame (DEPTH_EVERY), and the evidential head runs per DETECTION, not once. So this figure is an upper bound on cost, not the demo's measured rate.",
+    "vs_manuscript": "The manuscript's 2-9 FPS is the live demo's synchronous-mode tick rate, which includes CARLA rendering and the server round-trip. It is not comparable to these module timings and should not be presented as perception throughput."
+  },
+  "statistics": {
+    "experiment_id": "AUDIT-STAT-PAIRED",
+    "n_paired_observations": 845,
+    "n_episodes_contributing": 44,
+    "n_bootstrap": 10000,
+    "resampling_unit": "episode",
+    "method": "paired difference of means over identical observations, with episodes resampled with replacement; CI from the 2.5/97.5 percentiles of the bootstrap difference distribution",
+    "why_not_marginal_cis": "Overlapping marginal CIs do not imply a non-significant difference for PAIRED data. The paired difference removes the between-episode variance that dominates each marginal CI, so it is the appropriate test here.",
+    "tests": {
+      "v_lat": {
+        "fused_vs_camera": {
+          "comparison": "fused minus camera",
+          "observed_difference": -0.14659905852406985,
+          "ci95": [
+            -0.342213966920046,
+            0.09117615230337096
+          ],
+          "excludes_zero": false,
+          "bootstrap_p_two_sided": 0.1994,
+          "better": "fused",
+          "interpretation": "difference is NOT distinguishable from zero at this sample size"
+        },
+        "fused_vs_radar": {
+          "comparison": "fused minus radar",
+          "observed_difference": -1.010531387586594,
+          "ci95": [
+            -1.203728914457348,
+            -0.765995291218572
+          ],
+          "excludes_zero": true,
+          "bootstrap_p_two_sided": 0.0,
+          "better": "fused",
+          "interpretation": "difference is statistically distinguishable from zero"
+        }
+      },
+      "v_fwd": {
+        "fused_vs_camera": {
+          "comparison": "fused minus camera",
+          "observed_difference": -0.8493982752490972,
+          "ci95": [
+            -1.327251835820456,
+            -0.4383800107575853
+          ],
+          "excludes_zero": true,
+          "bootstrap_p_two_sided": 0.0,
+          "better": "fused",
+          "interpretation": "difference is statistically distinguishable from zero"
+        },
+        "fused_vs_radar": {
+          "comparison": "fused minus radar",
+          "observed_difference": 0.04327184982027274,
+          "ci95": [
+            -0.005680205049119518,
+            0.09797938344693818
+          ],
+          "excludes_zero": false,
+          "bootstrap_p_two_sided": 0.0892,
+          "better": "radar",
+          "interpretation": "difference is NOT distinguishable from zero at this sample size"
+        }
+      },
+      "position": {
+        "fused_vs_camera": {
+          "comparison": "fused minus camera",
+          "observed_difference": -0.2949149198643193,
+          "ci95": [
+            -0.729336477509751,
+            0.11354974868617394
+          ],
+          "excludes_zero": false,
+          "bootstrap_p_two_sided": 0.1534,
+          "better": "fused",
+          "interpretation": "difference is NOT distinguishable from zero at this sample size"
+        },
+        "fused_vs_radar": {
+          "comparison": "fused minus radar",
+          "observed_difference": -0.4245321427709867,
+          "ci95": [
+            -0.674933669533007,
+            -0.1335082254934405
+          ],
+          "excludes_zero": true,
+          "bootstrap_p_two_sided": 0.0062,
+          "better": "fused",
+          "interpretation": "difference is statistically distinguishable from zero"
+        }
+      }
+    }
+  },
+  "verification": [
+    {
+      "claim_id": "evidential_val_accuracy",
+      "description": "96.2% +/- 0.8% validation accuracy",
+      "manuscript_value": 0.962,
+      "recomputed_value": 0.9619184193753982,
+      "abs_difference": 8.158062460172921e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "evidential_best_epoch",
+      "description": "96.8% best epoch",
+      "manuscript_value": 0.968,
+      "recomputed_value": 0.96789356277884,
+      "abs_difference": 0.00010643722115999399,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "occlusion_precision",
+      "description": "occlusion detector precision",
+      "manuscript_value": 0.727,
+      "recomputed_value": 0.7268598116451538,
+      "abs_difference": 0.00014018835484619352,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "occlusion_recall",
+      "description": "occlusion detector recall",
+      "manuscript_value": 0.917,
+      "recomputed_value": 0.9174089068825911,
+      "abs_difference": 0.000408906882591098,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "occlusion_f1",
+      "description": "occlusion detector F1",
+      "manuscript_value": 0.811,
+      "recomputed_value": 0.8110932936257946,
+      "abs_difference": 9.329362579457712e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "occlusion_agreement",
+      "description": "occlusion cell agreement",
+      "manuscript_value": 0.78,
+      "recomputed_value": 0.7801,
+      "abs_difference": 9.999999999998899e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "cam_vlat",
+      "description": "camera lateral velocity MAE",
+      "manuscript_value": 0.819,
+      "recomputed_value": 0.8186882158013516,
+      "abs_difference": 0.00031178419864830165,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "cam_vfwd",
+      "description": "camera forward velocity MAE",
+      "manuscript_value": 1.048,
+      "recomputed_value": 1.0480352973104725,
+      "abs_difference": 3.5297310472470755e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "cam_pos",
+      "description": "camera position error",
+      "manuscript_value": 2.327,
+      "recomputed_value": 2.3268949637669714,
+      "abs_difference": 0.00010503623302859921,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "rad_vlat",
+      "description": "radar lateral velocity MAE",
+      "manuscript_value": 1.683,
+      "recomputed_value": 1.6826205448638758,
+      "abs_difference": 0.0003794551361242515,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "rad_vfwd",
+      "description": "radar forward velocity MAE",
+      "manuscript_value": 0.155,
+      "recomputed_value": 0.15536517224110266,
+      "abs_difference": 0.00036517224110266255,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "rad_pos",
+      "description": "radar position error",
+      "manuscript_value": 2.457,
+      "recomputed_value": 2.456512186673639,
+      "abs_difference": 0.0004878133263610529,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "fus_vlat",
+      "description": "fused lateral velocity MAE",
+      "manuscript_value": 0.672,
+      "recomputed_value": 0.6720891572772818,
+      "abs_difference": 8.915727728175948e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "fus_vfwd",
+      "description": "fused forward velocity MAE",
+      "manuscript_value": 0.199,
+      "recomputed_value": 0.1986370220613754,
+      "abs_difference": 0.00036297793862460903,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "fus_pos",
+      "description": "fused position error",
+      "manuscript_value": 2.032,
+      "recomputed_value": 2.031980043902652,
+      "abs_difference": 1.9956097347950674e-05,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "cam_auc",
+      "description": "camera intent AUC",
+      "manuscript_value": 0.789,
+      "recomputed_value": 0.7887248486758126,
+      "abs_difference": 0.00027515132418742816,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "cam_f1",
+      "description": "camera intent F1",
+      "manuscript_value": 0.733,
+      "recomputed_value": 0.7326500732064423,
+      "abs_difference": 0.00034992679355771994,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "rad_auc",
+      "description": "radar intent AUC",
+      "manuscript_value": 0.743,
+      "recomputed_value": 0.7425345985998406,
+      "abs_difference": 0.00046540140015938203,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "rad_f1",
+      "description": "radar intent F1",
+      "manuscript_value": 0.035,
+      "recomputed_value": 0.03538743136058572,
+      "abs_difference": 0.00038743136058571465,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "fus_auc",
+      "description": "fused intent AUC",
+      "manuscript_value": 0.873,
+      "recomputed_value": 0.872895322671243,
+      "abs_difference": 0.00010467732875696356,
+      "status": "VERIFIED"
+    },
+    {
+      "claim_id": "fus_f1",
+      "description": "fused intent F1",
+      "manuscript_value": 0.855,
+      "recomputed_value": 0.8554555680539934,
+      "abs_difference": 0.0004555680539933826,
+      "status": "VERIFIED"
+    }
+  ],
+  "consistency_issues": [
+    {
+      "level": "INFO",
+      "location": "manuscript Fig. confusion matrix vs Sec. results",
+      "message": "Confusion-matrix accuracy is 0.967894 (= best-epoch val accuracy, epoch 14), while the headline 96.2% +/- 0.8% is the mean +/- std of the LAST FIVE EPOCHS (0.961918 +/- 0.007611). Both are correct but they are different quantities; a reader recomputing accuracy from the printed confusion matrix gets 96.79%, not 96.2%. The manuscript must say which is which."
+    },
+    {
+      "level": "INFO",
+      "location": "confusion matrix",
+      "message": "Recomputed confusion matrix is IDENTICAL to the stored one."
+    },
+    {
+      "level": "ERROR",
+      "location": "results/metrics.json -> occlusion_grid_validation",
+      "message": "STALE: this block still holds the PRE-FIX operating point (precision 0.979, recall 0.173, F1 0.293) from before the 2026-09-17 q/tau fix. The manuscript reports 0.727/0.917/0.811. Two files in results/ therefore disagree; generate_report_figures.py has not been re-run since the fix."
+    },
+    {
+      "level": "WARNING",
+      "location": "occlusion detector operating point",
+      "message": "q/tau were selected as best-F1 on the sweep's 120-frame seed-0 sample AND the manuscript reports the score from that same sample. On 300 held-out frames the same fixed operating point gives F1 0.7982 vs 0.8111 reported (optimism gap +0.0129). The gap is small, but the reported figure is a tuning-sample figure and should be labelled as such or replaced with the held-out one."
+    },
+    {
+      "level": "WARNING",
+      "location": "data splits",
+      "message": "There is NO third, untouched test split. The best-epoch checkpoint is SELECTED on the same 26-episode validation split the accuracy is REPORTED on, so 96.8% is a model-selection-contaminated estimate. The 96.2% last-5-epoch mean is less affected but still validation, not test."
+    },
+    {
+      "level": "INFO",
+      "location": "data splits",
+      "message": "Episode-disjoint split verified: PASS -- no episode appears on both sides; 144 train / 26 val episodes matches the manuscript's stated 144/26."
+    },
+    {
+      "level": "WARNING",
+      "location": "fusion claim: v_lat",
+      "message": "fused vs camera on v_lat: difference -0.1466 with 95% CI [-0.3422, +0.0912], p=0.1994 -- NOT distinguishable from zero under episode-level bootstrap (44 episodes). The point estimate favours fusion but the dataset does not support a significance claim on this axis."
+    },
+    {
+      "level": "WARNING",
+      "location": "fusion claim: position",
+      "message": "fused vs camera on position: difference -0.2949 with 95% CI [-0.7293, +0.1135], p=0.1534 -- NOT distinguishable from zero under episode-level bootstrap (44 episodes). The point estimate favours fusion but the dataset does not support a significance claim on this axis."
+    },
+    {
+      "level": "WARNING",
+      "location": "fault injection count",
+      "message": "This run injects 10 fault conditions and the health monitor detects 6 of them (blur, darkness, fog, lens_blocked, noise, radar_dropout); undetected: extrinsic_drift, radar_bias, radar_clutter, radar_clutter_onset. Any 'N of M faults' claim must state M -- a '5 of 7' phrasing does not match this suite."
+    },
+    {
+      "level": "WARNING",
+      "location": "runtime claim",
+      "message": "Perception modules sum to 52.5 ms serial (19.0 FPS upper-bound cost) with CARLA out of the loop, whereas the manuscript's 2-9 FPS is the live demo's synchronous tick rate including CARLA rendering. These are different quantities and must not be presented as one."
+    },
+    {
+      "level": "INFO",
+      "location": "runtime breakdown",
+      "message": "Slowest stage is sensor_health_update at 25.8 ms, not MiDaS (16.3 ms). Documentation stating MiDaS dominates is contradicted by measurement."
+    },
+    {
+      "level": "WARNING",
+      "location": "hidden-target experiment",
+      "message": "Only 15 occlusion events were scorable across 10 episodes. Horizons with n<10: ['1.5s', '2.0s', '3.0s']. At 3.0s n=1, so its 'significant' CI is degenerate and meaningless. This experiment is sample-limited and must not carry a headline claim."
+    }
+  ],
+  "experiment_status": [
+    {
+      "experiment": "A: classification + uncertainty",
+      "status": "EXECUTED",
+      "dataset": "raw_v2 val (episode-disjoint)",
+      "n": 12552,
+      "main_metric": "acc 0.9679, ECE 0.0622, err-AUROC 0.942",
+      "file": "classification_metrics.json / uncertainty_metrics.json"
+    },
+    {
+      "experiment": "B: occlusion detector (held-out)",
+      "status": "EXECUTED",
+      "dataset": "300 frames disjoint from tuning sample",
+      "n": 120000,
+      "main_metric": "P 0.706 R 0.918 F1 0.798",
+      "file": "occlusion_metrics.json"
+    },
+    {
+      "experiment": "C: camera/radar/fusion tracking",
+      "status": "VERIFIED",
+      "dataset": "raw_v2 all episodes, paired",
+      "n": 845,
+      "main_metric": "fused v_lat 0.672",
+      "file": "tracking_metrics.json"
+    },
+    {
+      "experiment": "D: fusion ablation (camera/radar/fused)",
+      "status": "EXECUTED",
+      "dataset": "raw_v2",
+      "n": 845,
+      "main_metric": "see tracking + intent tables",
+      "file": "tracking_metrics.json"
+    },
+    {
+      "experiment": "D2: literature-style baseline",
+      "status": "EXECUTED",
+      "dataset": "raw_v2",
+      "n": 1836,
+      "main_metric": "baseline F1 0.778 vs proposed 0.885 (paired)",
+      "file": "scripts/evaluate_prediction.py --baseline (stdout)"
+    },
+    {
+      "experiment": "E: hidden-target prediction",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2 occlusion events",
+      "n": 15,
+      "main_metric": "particle vs EKF coast ADE; SAMPLE-LIMITED (n=15 events)",
+      "file": "hidden_prediction_metrics.json"
+    },
+    {
+      "experiment": "F: crossing intent",
+      "status": "VERIFIED",
+      "dataset": "raw_v2",
+      "n": 3065,
+      "main_metric": "fused F1 0.855",
+      "file": "intent_metrics.json"
+    },
+    {
+      "experiment": "G: risk engine",
+      "status": "SKIPPED",
+      "dataset": "-",
+      "n": null,
+      "main_metric": "no risk/TTC/hazard ground truth exists in the dataset",
+      "file": "risk_metrics.json"
+    },
+    {
+      "experiment": "H: fault injection",
+      "status": "EXECUTED",
+      "dataset": "raw_v2, 24 episodes",
+      "n": 10,
+      "main_metric": "6/10 detected",
+      "file": "fault_metrics.json"
+    },
+    {
+      "experiment": "I: calibration/extrinsic perturbation",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2",
+      "n": 1,
+      "main_metric": "extrinsic_drift is the only perturbation implemented; no severity sweep exists",
+      "file": "fault_metrics.json"
+    },
+    {
+      "experiment": "J: robustness / weather",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2 (all clear-day)",
+      "n": null,
+      "main_metric": "photometric degradation of clear-day frames ONLY; CARLA weather API non-functional on this build",
+      "file": "fault_metrics.json"
+    },
+    {
+      "experiment": "K: scenario generalisation",
+      "status": "EXECUTED",
+      "dataset": "4 scenarios, single town",
+      "n": 4,
+      "main_metric": "per-scenario occlusion performance",
+      "file": "occlusion_metrics.json -> by_scenario"
+    },
+    {
+      "experiment": "L: runtime profiling",
+      "status": "EXECUTED",
+      "dataset": "recorded frames, CARLA out of loop",
+      "n": 40,
+      "main_metric": "52.5 ms serial",
+      "file": "runtime_metrics.json"
+    },
+    {
+      "experiment": "M: multi-town generalisation",
+      "status": "SKIPPED",
+      "dataset": "-",
+      "n": null,
+      "main_metric": "excluded by explicit instruction; CARLA 0.10.0 ships only Town10HD_Opt in any case",
+      "file": "-"
+    }
+  ],
+  "skipped": [
+    {
+      "experiment": "G: risk engine",
+      "status": "SKIPPED",
+      "dataset": "-",
+      "n": null,
+      "main_metric": "no risk/TTC/hazard ground truth exists in the dataset",
+      "file": "risk_metrics.json"
+    },
+    {
+      "experiment": "M: multi-town generalisation",
+      "status": "SKIPPED",
+      "dataset": "-",
+      "n": null,
+      "main_metric": "excluded by explicit instruction; CARLA 0.10.0 ships only Town10HD_Opt in any case",
+      "file": "-"
+    }
+  ],
+  "partial": [
+    {
+      "experiment": "E: hidden-target prediction",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2 occlusion events",
+      "n": 15,
+      "main_metric": "particle vs EKF coast ADE; SAMPLE-LIMITED (n=15 events)",
+      "file": "hidden_prediction_metrics.json"
+    },
+    {
+      "experiment": "I: calibration/extrinsic perturbation",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2",
+      "n": 1,
+      "main_metric": "extrinsic_drift is the only perturbation implemented; no severity sweep exists",
+      "file": "fault_metrics.json"
+    },
+    {
+      "experiment": "J: robustness / weather",
+      "status": "PARTIALLY VERIFIED",
+      "dataset": "raw_v2 (all clear-day)",
+      "n": null,
+      "main_metric": "photometric degradation of clear-day frames ONLY; CARLA weather API non-functional on this build",
+      "file": "fault_metrics.json"
+    }
+  ]
+}

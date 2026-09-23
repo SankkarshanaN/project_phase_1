@@ -1,0 +1,85 @@
+{
+  "experiment_id": "AUDIT-J-RUNTIME",
+  "scope": "perception modules only, replayed on recorded frames; CARLA is NOT in the loop and contributes nothing to these timings",
+  "n_frames_timed": 40,
+  "warmup_calls": 3,
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "vram_total": "8.0 GiB",
+    "device_used": "cuda",
+    "cpu": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD",
+    "python": "3.12.11",
+    "torch": "2.10.0.dev20250925+cu128",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "input": {
+    "camera_resolution": [
+      800,
+      600
+    ],
+    "crop_size": 64,
+    "bev_grid": 20
+  },
+  "stages": {
+    "yolov8n_detect": {
+      "mean_ms": 8.87487000291003,
+      "median_ms": 8.508700033416972,
+      "p95_ms": 10.816679970594121,
+      "n_calls": 40,
+      "implied_fps_if_alone": 112.6777067914352
+    },
+    "evidential_head_per_crop": {
+      "mean_ms": 0.6038250037818216,
+      "median_ms": 0.5747000104747713,
+      "p95_ms": 0.7440350425895297,
+      "n_calls": 40,
+      "implied_fps_if_alone": 1656.1089615979654
+    },
+    "midas_depth": {
+      "mean_ms": 16.29727749968879,
+      "median_ms": 16.322450013831258,
+      "p95_ms": 17.2194200247759,
+      "n_calls": 40,
+      "implied_fps_if_alone": 61.359941868762796
+    },
+    "occlusion_grid_given_disparity": {
+      "mean_ms": 0.6925949986907654,
+      "median_ms": 0.6901499873492867,
+      "p95_ms": 0.7120700087398291,
+      "n_calls": 40,
+      "implied_fps_if_alone": 1443.8452513955951
+    },
+    "radar_confidence": {
+      "mean_ms": 0.024287504493258893,
+      "median_ms": 0.024150009267032146,
+      "p95_ms": 0.025660020764917132,
+      "n_calls": 40,
+      "implied_fps_if_alone": 41173.435511975076
+    },
+    "ekf_tracking_step": {
+      "mean_ms": 0.13352249807212502,
+      "median_ms": 0.12989999959245324,
+      "p95_ms": 0.1505999796791002,
+      "n_calls": 40,
+      "implied_fps_if_alone": 7489.37455813498
+    },
+    "particle_filter_step_400p": {
+      "mean_ms": 0.1121799970860593,
+      "median_ms": 0.11940003605559468,
+      "p95_ms": 0.14585499884560701,
+      "n_calls": 40,
+      "implied_fps_if_alone": 8914.245195004296
+    },
+    "sensor_health_update": {
+      "mean_ms": 25.76163750345586,
+      "median_ms": 25.86870000232011,
+      "p95_ms": 26.862739978241734,
+      "n_calls": 40,
+      "implied_fps_if_alone": 38.81740824378313
+    }
+  },
+  "serial_sum_mean_ms": 52.50019500817871,
+  "implied_fps_serial_sum": 19.047548296615197,
+  "important_distinction": "implied_fps_serial_sum assumes every stage runs every frame in series. The live demo does NOT do that -- MiDaS is refreshed every 3rd frame (DEPTH_EVERY), and the evidential head runs per DETECTION, not once. So this figure is an upper bound on cost, not the demo's measured rate.",
+  "vs_manuscript": "The manuscript's 2-9 FPS is the live demo's synchronous-mode tick rate, which includes CARLA rendering and the server round-trip. It is not comparable to these module timings and should not be presented as perception throughput."
+}

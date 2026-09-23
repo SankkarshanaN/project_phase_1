@@ -1,0 +1,49 @@
+{
+  "experiment_id": "SP-06-EFFECT-SIZES",
+  "n_paired_observations": 845,
+  "note": "complements the first pass's bootstrap p-values: a p-value reports whether a difference is distinguishable from zero, an effect size reports whether it is large enough to care about",
+  "tests": {
+    "v_lat": {
+      "fused_vs_camera": {
+        "mean_difference": -0.1465990585240697,
+        "cohens_dz_paired": -0.14483725553072155,
+        "prob_a_better_than_b": 0.6331360946745562,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      },
+      "fused_vs_radar": {
+        "mean_difference": -1.0105313875865938,
+        "cohens_dz_paired": -1.114965590539727,
+        "prob_a_better_than_b": 0.8769230769230769,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      }
+    },
+    "v_fwd": {
+      "fused_vs_camera": {
+        "mean_difference": -0.8493982752490973,
+        "cohens_dz_paired": -0.4484332702311927,
+        "prob_a_better_than_b": 0.842603550295858,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      },
+      "fused_vs_radar": {
+        "mean_difference": 0.043271849820272795,
+        "cohens_dz_paired": 0.1855191977357279,
+        "prob_a_better_than_b": 0.42011834319526625,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      }
+    },
+    "position": {
+      "fused_vs_camera": {
+        "mean_difference": -0.2949149198643193,
+        "cohens_dz_paired": -0.18853600726145178,
+        "prob_a_better_than_b": 0.5680473372781065,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      },
+      "fused_vs_radar": {
+        "mean_difference": -0.4245321427709866,
+        "cohens_dz_paired": -0.3724372679649921,
+        "prob_a_better_than_b": 0.7538461538461538,
+        "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+      }
+    }
+  }
+}

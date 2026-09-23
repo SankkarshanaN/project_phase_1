@@ -1,0 +1,62 @@
+[
+  {
+    "level": "INFO",
+    "location": "manuscript Fig. confusion matrix vs Sec. results",
+    "message": "Confusion-matrix accuracy is 0.967894 (= best-epoch val accuracy, epoch 14), while the headline 96.2% +/- 0.8% is the mean +/- std of the LAST FIVE EPOCHS (0.961918 +/- 0.007611). Both are correct but they are different quantities; a reader recomputing accuracy from the printed confusion matrix gets 96.79%, not 96.2%. The manuscript must say which is which."
+  },
+  {
+    "level": "INFO",
+    "location": "confusion matrix",
+    "message": "Recomputed confusion matrix is IDENTICAL to the stored one."
+  },
+  {
+    "level": "ERROR",
+    "location": "results/metrics.json -> occlusion_grid_validation",
+    "message": "STALE: this block still holds the PRE-FIX operating point (precision 0.979, recall 0.173, F1 0.293) from before the 2026-09-17 q/tau fix. The manuscript reports 0.727/0.917/0.811. Two files in results/ therefore disagree; generate_report_figures.py has not been re-run since the fix."
+  },
+  {
+    "level": "WARNING",
+    "location": "occlusion detector operating point",
+    "message": "q/tau were selected as best-F1 on the sweep's 120-frame seed-0 sample AND the manuscript reports the score from that same sample. On 300 held-out frames the same fixed operating point gives F1 0.7982 vs 0.8111 reported (optimism gap +0.0129). The gap is small, but the reported figure is a tuning-sample figure and should be labelled as such or replaced with the held-out one."
+  },
+  {
+    "level": "WARNING",
+    "location": "data splits",
+    "message": "There is NO third, untouched test split. The best-epoch checkpoint is SELECTED on the same 26-episode validation split the accuracy is REPORTED on, so 96.8% is a model-selection-contaminated estimate. The 96.2% last-5-epoch mean is less affected but still validation, not test."
+  },
+  {
+    "level": "INFO",
+    "location": "data splits",
+    "message": "Episode-disjoint split verified: PASS -- no episode appears on both sides; 144 train / 26 val episodes matches the manuscript's stated 144/26."
+  },
+  {
+    "level": "WARNING",
+    "location": "fusion claim: v_lat",
+    "message": "fused vs camera on v_lat: difference -0.1466 with 95% CI [-0.3422, +0.0912], p=0.1994 -- NOT distinguishable from zero under episode-level bootstrap (44 episodes). The point estimate favours fusion but the dataset does not support a significance claim on this axis."
+  },
+  {
+    "level": "WARNING",
+    "location": "fusion claim: position",
+    "message": "fused vs camera on position: difference -0.2949 with 95% CI [-0.7293, +0.1135], p=0.1534 -- NOT distinguishable from zero under episode-level bootstrap (44 episodes). The point estimate favours fusion but the dataset does not support a significance claim on this axis."
+  },
+  {
+    "level": "WARNING",
+    "location": "fault injection count",
+    "message": "This run injects 10 fault conditions and the health monitor detects 6 of them (blur, darkness, fog, lens_blocked, noise, radar_dropout); undetected: extrinsic_drift, radar_bias, radar_clutter, radar_clutter_onset. Any 'N of M faults' claim must state M -- a '5 of 7' phrasing does not match this suite."
+  },
+  {
+    "level": "WARNING",
+    "location": "runtime claim",
+    "message": "Perception modules sum to 52.5 ms serial (19.0 FPS upper-bound cost) with CARLA out of the loop, whereas the manuscript's 2-9 FPS is the live demo's synchronous tick rate including CARLA rendering. These are different quantities and must not be presented as one."
+  },
+  {
+    "level": "INFO",
+    "location": "runtime breakdown",
+    "message": "Slowest stage is sensor_health_update at 25.8 ms, not MiDaS (16.3 ms). Documentation stating MiDaS dominates is contradicted by measurement."
+  },
+  {
+    "level": "WARNING",
+    "location": "hidden-target experiment",
+    "message": "Only 15 occlusion events were scorable across 10 episodes. Horizons with n<10: ['1.5s', '2.0s', '3.0s']. At 3.0s n=1, so its 'significant' CI is degenerate and meaningless. This experiment is sample-limited and must not carry a headline claim."
+  }
+]

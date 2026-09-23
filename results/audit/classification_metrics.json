@@ -1,0 +1,57 @@
+{
+  "experiment_id": "AUDIT-A-CLASSIFICATION",
+  "split": "episode-disjoint validation (val_frac=0.15, seed=0)",
+  "n_crops": 12552,
+  "n_val_episodes": 26,
+  "n_train_episodes": 144,
+  "checkpoint": "models\\evidential_detector.pt",
+  "accuracy": 0.96789356277884,
+  "macro_precision": 0.9598562431515529,
+  "macro_recall": 0.9713513742870298,
+  "macro_f1": 0.9652204469510993,
+  "weighted_f1": 0.9679133468502061,
+  "per_class": {
+    "vehicle": {
+      "precision": 0.9883977900552486,
+      "recall": 0.9492394764768306,
+      "f1": 0.9684229520028871,
+      "support": 5654
+    },
+    "pedestrian": {
+      "precision": 0.9346264367816092,
+      "recall": 0.9811463046757164,
+      "f1": 0.9573215599705666,
+      "support": 1326
+    },
+    "background": {
+      "precision": 0.956544502617801,
+      "recall": 0.9836683417085427,
+      "f1": 0.9699168288798442,
+      "support": 5572
+    }
+  },
+  "confusion_matrix": [
+    [
+      5367,
+      57,
+      230
+    ],
+    [
+      6,
+      1301,
+      19
+    ],
+    [
+      57,
+      34,
+      5481
+    ]
+  ],
+  "confusion_matrix_rows": "true",
+  "confusion_matrix_cols": "predicted",
+  "class_order": [
+    "vehicle",
+    "pedestrian",
+    "background"
+  ]
+}

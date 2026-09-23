@@ -1,0 +1,16 @@
+experiment,status,n,headline,file
+SP-01 Independent test set (classifier/tracking/intent),EXECUTED — NEW,62528,test accuracy 0.9680 vs validation 0.9679,independent_test_metrics.json
+SP-02 Intent lead-time,EXECUTED — NEW,1697,fused recall 0.696 at 1.0-1.5 s vs camera 0.306,intent_vs_lead_time.json
+SP-03 Hidden-target diagnosis,EXECUTED — DIAGNOSTIC,202,202 -> 32 -> 15; first audit scored exactly the valid set,hidden_target_diagnosis.json
+SP-04 Fault severity dose-response,EXECUTED — NEW,24,monitor never flags any silent fault at any severity; clutter RAISES health,fault_severity_metrics.json
+SP-05 Error distributions,EXECUTED — NEW,845,"fused v_lat median 0.341 vs camera 0.690, but p95 2.476 vs 2.125",distributions.json
+SP-06 Effect sizes,EXECUTED — NEW,845,fused-vs-camera v_lat dz=-0.145 (negligible); fused-vs-radar dz=-1.115 (large),effect_sizes.json
+SP-07 Breakdowns (range/scenario/visibility),EXECUTED — NEW,845,"Spearman(uncertainty,error)=0.297",breakdowns.json
+SP-08 Occlusion spatial error analysis,EXECUTED - NEW,300,recall flat with range (0.94->0.90); precision collapses in the NEAR field (0.127 at 0-10 m); errors are not boundary artefacts,spatial_errors.json
+SP-09 Pixel-level leakage audit,EXECUTED - NEW,16197,"0 episode overlap; 1.60% of val crops have a Hamming<=3 twin in train, concentrated in vehicles (2.36%), pedestrians 0.06%",leakage_audit.json
+Occlusion detector on independent test,NOT SUPPORTED,,the only unused collection has the corrupted occ_grid ground truth,EXPERIMENT_GAP_MATRIX.md row 9
+"Ablation D/F (occlusion conditioning, contradiction resolver)",SHOULD NOT BE ADDED,,PerceptionPipeline exposes no disable flags; would require rewriting the architecture,"EXPERIMENT_GAP_MATRIX.md rows 19,21"
+Risk engine / TTC,NOT SUPPORTED,,re-checked: no risk/ttc/hazard key in any meta record,results/audit/risk_metrics.json
+Fault detection delay / recovery,PARTIALLY SUPPORTED,,only radar_clutter_onset has an onset (frame 100); all other faults are on from frame 1,EXPERIMENT_GAP_MATRIX.md row 25
+Classifier object-size analysis,SKIPPED,,saved raw predictions carry tier/visibility but not crop pixel dimensions; visibility used instead,breakdowns.json -> classifier_size_analysis
+Multi-town / Town05,SHOULD NOT BE ADDED,,excluded by instruction; CARLA 0.10.0 ships one town,—

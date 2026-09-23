@@ -1,0 +1,181 @@
+{
+  "experiment_id": "AUDIT-E-HIDDEN-TARGET",
+  "status": "EXECUTED",
+  "ground_truth": "recorded amodal obj_xy_ego for actors whose tier is OCCLUDED; available only because fully-hidden actors are deliberately retained in meta/ (they were dropped in dataset v1)",
+  "protocol": "seed at first OCCLUDED frame from the last confirmed EKF estimate (mirrors pipeline._handoff), then propagate both predictors with no measurement; score against amodal truth while still hidden",
+  "methods_compared": {
+    "particle": "perception.particle_tracker.HiddenHazardTracker (mean_position)",
+    "ekf_coast": "constant-velocity dead reckoning with ego-motion compensation, i.e. what perception.tracking does while coasting"
+  },
+  "n_occlusion_events_scored": 15,
+  "n_episodes_with_events": 10,
+  "miss_threshold_m": 2.0,
+  "denominator": "one sample = one (occlusion event, horizon) pair",
+  "by_horizon": {
+    "0.5s": {
+      "particle": {
+        "n": 15,
+        "ade_mean_m": 7.848984968513341,
+        "rmse_m": 12.49890402350524,
+        "median_m": 5.253965300451183,
+        "p95_m": 20.930006472052384,
+        "miss_rate_at_2m": 1.0
+      },
+      "ekf_coast": {
+        "n": 15,
+        "ade_mean_m": 8.154018951713981,
+        "rmse_m": 12.712780803005785,
+        "median_m": 5.305138308818134,
+        "p95_m": 21.18196130594935,
+        "miss_rate_at_2m": 0.9333333333333333
+      },
+      "particle_position_spread_m": {
+        "mean": 13.201204819268288,
+        "median": 15.346735665778038
+      },
+      "paired_particle_minus_ekf": {
+        "mean_difference_m": -0.3050339832006382,
+        "ci95": [
+          -0.7684319972312663,
+          0.10260058459486256
+        ],
+        "excludes_zero": false,
+        "better": "particle",
+        "bootstrap_unit": "event (NOT episode -- see note)"
+      }
+    },
+    "1.0s": {
+      "particle": {
+        "n": 11,
+        "ade_mean_m": 10.105512744823976,
+        "rmse_m": 15.292900573856109,
+        "median_m": 6.548347819804037,
+        "p95_m": 28.530456706700416,
+        "miss_rate_at_2m": 1.0
+      },
+      "ekf_coast": {
+        "n": 11,
+        "ade_mean_m": 11.003952423865618,
+        "rmse_m": 16.428089978884792,
+        "median_m": 6.912588267975813,
+        "p95_m": 30.26353991027282,
+        "miss_rate_at_2m": 1.0
+      },
+      "particle_position_spread_m": {
+        "mean": 12.45307005959745,
+        "median": 14.030294003275596
+      },
+      "paired_particle_minus_ekf": {
+        "mean_difference_m": -0.8984396790416427,
+        "ci95": [
+          -2.0006925698927067,
+          -0.011386896962866717
+        ],
+        "excludes_zero": true,
+        "better": "particle",
+        "bootstrap_unit": "event (NOT episode -- see note)"
+      }
+    },
+    "1.5s": {
+      "particle": {
+        "n": 4,
+        "ade_mean_m": 5.714430812739153,
+        "rmse_m": 6.511713645064823,
+        "median_m": 4.947942626467443,
+        "p95_m": 9.936539654408055,
+        "miss_rate_at_2m": 1.0
+      },
+      "ekf_coast": {
+        "n": 4,
+        "ade_mean_m": 6.688530302012248,
+        "rmse_m": 7.113354912380207,
+        "median_m": 5.586586570744519,
+        "p95_m": 10.077218728347471,
+        "miss_rate_at_2m": 1.0
+      },
+      "particle_position_spread_m": {
+        "mean": 6.616961581936463,
+        "median": 3.820144921070791
+      },
+      "paired_particle_minus_ekf": {
+        "mean_difference_m": -0.9740994892730958,
+        "ci95": [
+          -2.7035279289098635,
+          -0.03615194367031371
+        ],
+        "excludes_zero": true,
+        "better": "particle",
+        "bootstrap_unit": "event (NOT episode -- see note)"
+      }
+    },
+    "2.0s": {
+      "particle": {
+        "n": 3,
+        "ade_mean_m": 7.1745958630754245,
+        "rmse_m": 7.844960971277485,
+        "median_m": 5.369672194056977,
+        "p95_m": 11.008544970320177,
+        "miss_rate_at_2m": 1.0
+      },
+      "ekf_coast": {
+        "n": 3,
+        "ade_mean_m": 7.426597571372906,
+        "rmse_m": 8.022607691702158,
+        "median_m": 5.351646789493128,
+        "p95_m": 11.080634020447484,
+        "miss_rate_at_2m": 1.0
+      },
+      "particle_position_spread_m": {
+        "mean": 8.2608684132873,
+        "median": 3.918289238490764
+      },
+      "paired_particle_minus_ekf": {
+        "mean_difference_m": -0.25200170829748164,
+        "ci95": [
+          -0.6919287621410799,
+          0.018025404563848824
+        ],
+        "excludes_zero": false,
+        "better": "particle",
+        "bootstrap_unit": "event (NOT episode -- see note)"
+      }
+    },
+    "3.0s": {
+      "particle": {
+        "n": 1,
+        "ade_mean_m": 10.092770581899993,
+        "rmse_m": 10.092770581899993,
+        "median_m": 10.092770581899993,
+        "p95_m": 10.092770581899993,
+        "miss_rate_at_2m": 1.0
+      },
+      "ekf_coast": {
+        "n": 1,
+        "ade_mean_m": 10.229733563134756,
+        "rmse_m": 10.229733563134756,
+        "median_m": 10.229733563134756,
+        "p95_m": 10.229733563134756,
+        "miss_rate_at_2m": 1.0
+      },
+      "particle_position_spread_m": {
+        "mean": 21.3433573069288,
+        "median": 21.3433573069288
+      },
+      "paired_particle_minus_ekf": {
+        "mean_difference_m": -0.13696298123476325,
+        "ci95": [
+          -0.13696298123476325,
+          -0.13696298123476325
+        ],
+        "excludes_zero": true,
+        "better": "particle",
+        "bootstrap_unit": "event (NOT episode -- see note)"
+      }
+    }
+  },
+  "caveats": [
+    "Events, not episodes, are the bootstrap unit here -- several events can come from one episode, so these CIs are less conservative than the episode-level ones used for the tracking comparison.",
+    "FDE is not reported separately: an event is scored only while the actor is still hidden, so the last scored horizon IS the final displacement for that event and reporting it twice under another name would be double-counting.",
+    "The particle filter's own emergence prediction is not scored here; this measures position belief only."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "experiment_id": "AUDIT-G-RISK",
+  "status": "SKIPPED",
+  "reason": "No risk / TTC / hazard ground truth exists in the dataset. perception.risk.assess() produces a score and an ADAS action, but scoring those requires a per-frame label for whether the situation was genuinely dangerous, and no such label is recorded. Deriving one (e.g. by thresholding distance or TTC) would be inventing the ground truth the metric is meant to test against, which this audit will not do.",
+  "meta_keys_present": [
+    "ego_vx",
+    "ego_vy",
+    "ego_x",
+    "ego_y",
+    "ego_yaw_rad",
+    "ego_z",
+    "episode_id",
+    "frame_idx",
+    "obj_actor_id",
+    "obj_box_px",
+    "obj_class",
+    "obj_is_vru",
+    "obj_tier",
+    "obj_truncation",
+    "obj_vel_ego",
+    "obj_visibility",
+    "obj_xy_ego",
+    "occ_grid",
+    "radar_pts",
+    "scenario_type",
+    "sem_grid",
+    "sim_time",
+    "true_occ_grid",
+    "weather_name"
+  ],
+  "risk_like_keys_found": [],
+  "dataset_level_files": [
+    "intent_labels.npz"
+  ],
+  "what_would_be_needed": [
+    "a per-frame or per-event label of genuine hazard/no-hazard, or",
+    "recorded time-to-collision ground truth, or",
+    "logged collision/near-miss events with timestamps to score warnings against"
+  ],
+  "note": "The collision sensor exists in the sensor rig (carla_tools.sensors), so such labels COULD be recorded in a future collection, but they are not present in data/raw_v2 and cannot be recovered from it after the fact."
+}

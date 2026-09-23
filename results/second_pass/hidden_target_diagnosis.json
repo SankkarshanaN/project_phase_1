@@ -1,0 +1,37 @@
+{
+  "experiment_id": "SP-03-HIDDEN-TARGET-DIAGNOSIS",
+  "status": "EXECUTED",
+  "question": "is the 15-event limit data, or an evaluation restriction?",
+  "funnel": {
+    "stage_1_occlusion_transitions_in_ground_truth": 202,
+    "stage_2_actor_was_confirmed_tracked_before_going_hidden": 32,
+    "stage_3_stays_hidden_at_least_0.5s_with_truth": 15,
+    "stage_4_scored_by_first_audit": 15
+  },
+  "attrition": {
+    "stage_1_to_2_lost": 170,
+    "stage_1_to_2_cause": "The actor was never CONFIRMED-tracked while visible, so there is no state to seed a hidden-target predictor from. MultiObjectTracker requires MIN_HITS_TO_CONFIRM=3 consecutive associations. This is a genuine property of the pipeline, not an evaluation artefact: with no prior track there is literally nothing to propagate.",
+    "stage_2_to_3_lost": 17,
+    "stage_2_to_3_cause": "re-emerged (or amodal truth ended) before the shortest 0.5s horizon could be scored"
+  },
+  "hidden_run_length_distribution": {
+    "n_transitions": 202,
+    "median_frames_hidden": 4.0,
+    "mean_frames_hidden": 11.024752475247524,
+    "frac_hidden_>=5_frames_0p5s": 0.4752475247524752,
+    "frac_hidden_>=10_frames_1p0s": 0.3415841584158416,
+    "frac_hidden_>=20_frames_2p0s": 0.16831683168316833,
+    "frac_hidden_>=30_frames_3p0s": 0.054455445544554455,
+    "p90_frames_hidden": 25.0,
+    "max_frames_hidden": 313.0
+  },
+  "verdict": {
+    "classification": "A + pipeline-inherent: genuinely few scorable events",
+    "explanation": "Of 202 ground-truth occlusion transitions, only 32 (15.8%) involved an actor the tracker had already confirmed, and only 15 of those stayed hidden long enough to score. The dominant loss is upstream of the hidden-target evaluation: most actors that go behind an occluder were never solidly tracked in the first place. That is a real limitation of the perception chain, not a bug in the evaluation, and it cannot be fixed by changing the scoring."
+  },
+  "actions_considered_and_rejected": [
+    "Lowering MIN_HITS_TO_CONFIRM to admit more events -- rejected: it would change the tracker's behaviour, i.e. the system under test.",
+    "Widening the 5 m association gate -- rejected: same reason, and it would flatter the result by admitting looser matches.",
+    "Seeding the hidden predictor from ground truth instead of the last confirmed estimate -- rejected: that leaks privileged state and is not what pipeline._handoff does at runtime."
+  ]
+}

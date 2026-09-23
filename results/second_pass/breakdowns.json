@@ -1,0 +1,252 @@
+{
+  "experiment_id": "SP-07-BREAKDOWNS",
+  "min_n_for_report": 30,
+  "tracking_by_range": {
+    "0-10m": {
+      "n": 766,
+      "camera": {
+        "v_lat_mae": 0.8239235680386444,
+        "position_mae": 2.273379892364734
+      },
+      "radar": {
+        "v_lat_mae": 1.6764252480732242,
+        "position_mae": 2.4101874627670865
+      },
+      "fused": {
+        "v_lat_mae": 0.6849258056587328,
+        "position_mae": 1.9935628396726406
+      }
+    },
+    "10-20m": {
+      "n": 79,
+      "camera": {
+        "v_lat_mae": 0.7679251801840558,
+        "position_mae": 2.8457879345785435
+      },
+      "radar": {
+        "v_lat_mae": 1.7426913972896865,
+        "position_mae": 2.905686091894134
+      },
+      "fused": {
+        "v_lat_mae": 0.5476224147432128,
+        "position_mae": 2.404481036816436
+      }
+    }
+  },
+  "intent_by_scenario": {
+    "multi_occlusion": {
+      "camera": {
+        "n": 1666,
+        "positive_rate": 0.6482593037214885,
+        "roc_auc": 0.8151023890784983,
+        "precision": 0.8404040404040404,
+        "recall": 0.7703703703703704,
+        "f1": 0.803864734299517
+      },
+      "radar": {
+        "n": 1826,
+        "positive_rate": 0.6588170865279299,
+        "roc_auc": 0.7188622878331192,
+        "precision": 1.0,
+        "recall": 0.022443890274314215,
+        "f1": 0.04390243902439024
+      },
+      "fused": {
+        "n": 1989,
+        "positive_rate": 0.6098541980894923,
+        "roc_auc": 0.8589204366782536,
+        "precision": 0.8468185388845247,
+        "recall": 0.8887056883759274,
+        "f1": 0.8672566371681416
+      }
+    },
+    "occluded_pedestrian_crossing": {
+      "camera": {
+        "n": 515,
+        "positive_rate": 0.2737864077669903,
+        "roc_auc": 0.9565934691091137,
+        "precision": 0.8034188034188035,
+        "recall": 0.6666666666666666,
+        "f1": 0.7286821705426356
+      },
+      "radar": {
+        "n": 44,
+        "positive_rate": 0.7045454545454546,
+        "roc_auc": 1.0,
+        "precision": NaN,
+        "recall": 0.0,
+        "f1": NaN
+      },
+      "fused": {
+        "n": 83,
+        "positive_rate": 0.3855421686746988,
+        "roc_auc": 0.9154411764705882,
+        "precision": 0.5084745762711864,
+        "recall": 0.9375,
+        "f1": 0.6593406593406593
+      }
+    },
+    "urban_crossing": {
+      "camera": {
+        "n": 1484,
+        "positive_rate": 0.4669811320754717,
+        "roc_auc": 0.6522384765115485,
+        "precision": 0.8248730964467005,
+        "recall": 0.468975468975469,
+        "f1": 0.5979760809567618
+      },
+      "radar": {
+        "n": 621,
+        "positive_rate": 0.605475040257649,
+        "roc_auc": 0.796754233608337,
+        "precision": 1.0,
+        "recall": 0.005319148936170213,
+        "f1": 0.010582010582010583
+      },
+      "fused": {
+        "n": 993,
+        "positive_rate": 0.4551863041289023,
+        "roc_auc": 0.9053457216233458,
+        "precision": 0.7836812144212524,
+        "recall": 0.9137168141592921,
+        "f1": 0.8437180796731358
+      }
+    }
+  },
+  "intent_by_range": {
+    "0-10m": {
+      "camera": {
+        "n": 2023,
+        "positive_rate": 0.703905091448344,
+        "roc_auc": 0.7160729024028812,
+        "precision": 0.8566340160284951,
+        "recall": 0.675561797752809,
+        "f1": 0.7553985080486847
+      },
+      "radar": {
+        "n": 2069,
+        "positive_rate": 0.6776220396326728,
+        "roc_auc": 0.7492065308287369,
+        "precision": 1.0,
+        "recall": 0.020684736091298145,
+        "f1": 0.04053109713487072
+      },
+      "fused": {
+        "n": 2203,
+        "positive_rate": 0.6472991375397186,
+        "roc_auc": 0.880513302322559,
+        "precision": 0.8681757656458056,
+        "recall": 0.9144460028050491,
+        "f1": 0.8907103825136612
+      }
+    },
+    "10-20m": {
+      "camera": {
+        "n": 1271,
+        "positive_rate": 0.32494099134539733,
+        "roc_auc": 0.8900633265040044,
+        "precision": 0.7774725274725275,
+        "recall": 0.6852300242130751,
+        "f1": 0.7284427284427284
+      },
+      "radar": {
+        "n": 358,
+        "positive_rate": 0.547486033519553,
+        "roc_auc": 0.6821145124716553,
+        "precision": NaN,
+        "recall": 0.0,
+        "f1": NaN
+      },
+      "fused": {
+        "n": 690,
+        "positive_rate": 0.3884057971014493,
+        "roc_auc": 0.775535827969159,
+        "precision": 0.6217765042979942,
+        "recall": 0.8097014925373134,
+        "f1": 0.7034035656401944
+      }
+    },
+    "20-30m": {
+      "camera": {
+        "n": 244,
+        "positive_rate": 0.2459016393442623,
+        "roc_auc": 0.6116847826086956,
+        "precision": 0.3333333333333333,
+        "recall": 0.06666666666666667,
+        "f1": 0.1111111111111111
+      },
+      "radar": {
+        "n": 34,
+        "positive_rate": 0.23529411764705882,
+        "roc_auc": 0.9951923076923077,
+        "precision": NaN,
+        "recall": 0.0,
+        "f1": NaN
+      },
+      "fused": {
+        "n": 96,
+        "positive_rate": 0.03125,
+        "roc_auc": 0.6505376344086021,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": NaN
+      }
+    },
+    "30-40m": {
+      "camera": {
+        "n": 106,
+        "positive_rate": 0.1320754716981132,
+        "roc_auc": 0.6638198757763976,
+        "precision": 1.0,
+        "recall": 0.14285714285714285,
+        "f1": 0.25
+      },
+      "radar": null,
+      "fused": {
+        "n": 44,
+        "note": "single-class subset; AUC undefined",
+        "positive_rate": 0.0
+      }
+    },
+    "40-infm": {
+      "camera": null,
+      "radar": null,
+      "fused": {
+        "n": 32,
+        "note": "single-class subset; AUC undefined",
+        "positive_rate": 0.0
+      }
+    }
+  },
+  "classifier_by_visibility_fraction": {
+    "0.00-0.25": {
+      "n": 509,
+      "accuracy": 0.8526522593320236,
+      "mean_uncertainty": 0.25445982813835144
+    },
+    "0.25-0.50": {
+      "n": 448,
+      "accuracy": 0.8861607142857143,
+      "mean_uncertainty": 0.210969939827919
+    },
+    "0.50-0.75": {
+      "n": 504,
+      "accuracy": 0.9265873015873016,
+      "mean_uncertainty": 0.15630997717380524
+    },
+    "0.75-1.00": {
+      "n": 5519,
+      "accuracy": 0.9730023554991847,
+      "mean_uncertainty": 0.13275407254695892
+    }
+  },
+  "spearman_uncertainty_vs_error": {
+    "rho": 0.29720145983595614,
+    "n": 6980,
+    "interpretation": "positive rho means higher uncertainty accompanies more errors, i.e. the uncertainty is ordered with difficulty"
+  },
+  "classifier_size_analysis": {
+    "status": "SKIPPED",
+    "reason": "raw_predictions_val.npz stores tier and visibility but not the crop's pixel dimensions, and re-deriving them would require re-running inference. Visibility fraction is reported instead, which is the difficulty axis the project itself defines."
+  }
+}

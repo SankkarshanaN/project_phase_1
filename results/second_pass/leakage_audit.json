@@ -1,0 +1,41 @@
+{
+  "experiment_id": "SP-09-LEAKAGE-AUDIT",
+  "status": "EXECUTED",
+  "question": "does episode-disjoint splitting leave any near-identical crop on both sides of the train/val boundary?",
+  "method": "64-bit dHash of every crop at its recorded box; exact hash collisions and Hamming<=3 near-duplicates (found exactly via 4-band LSH) counted between the two sides",
+  "n_train_crops": 47638,
+  "n_val_crops": 16197,
+  "n_train_episodes": 136,
+  "n_val_episodes": 34,
+  "episode_overlap": [],
+  "episode_overlap_count": 0,
+  "exact_hash_collisions": {
+    "n_colliding_hashes": 42,
+    "n_val_crops_affected": 42,
+    "fraction_of_val": 0.0025930727912576402,
+    "by_class": {
+      "background": 6,
+      "vehicle": 36
+    }
+  },
+  "near_duplicates_hamming_le_3": {
+    "n_val_crops_affected": 259,
+    "fraction_of_val": 0.01599061554608878,
+    "n_hash_pairs": 457,
+    "by_class": {
+      "background": 83,
+      "vehicle": 175,
+      "pedestrian": 1
+    },
+    "val_class_distribution_for_reference": {
+      "background": 7132,
+      "vehicle": 7423,
+      "pedestrian": 1642
+    }
+  },
+  "context_within_episode_consecutive_similarity": {
+    "mean_fraction_of_adjacent_hashes_within_hamming_3": 0.025025446146216213,
+    "episodes_sampled": 20,
+    "note": "NOT a valid comparator and must not be quoted as one: this walks hashes in sorted VALUE order, not frame order, so it does not measure consecutive-frame similarity. Retained only to record what was computed."
+  }
+}

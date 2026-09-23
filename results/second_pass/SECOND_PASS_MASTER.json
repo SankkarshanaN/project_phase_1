@@ -1,0 +1,2076 @@
+{
+  "generated_utc": "2026-09-23T06:27:37.754071+00:00",
+  "pass": "second",
+  "builds_on": "results/audit/MASTER_RESULTS.json (first pass)",
+  "reproducibility": {
+    "git_commit": "385309f8db00ef7c599bcb5349205928ed3e8945",
+    "seeds": {
+      "episode_split": 0,
+      "occlusion_holdout": 1234,
+      "bootstrap": 0,
+      "hidden_probe": 7,
+      "fault_sweep_rng": 0
+    },
+    "note": "all second-pass experiments are offline replays of recorded data and are deterministic"
+  },
+  "independent_test": {
+    "experiment_id": "SP-01-INDEPENDENT-TEST",
+    "status": "EXECUTED",
+    "headline": "The first audit reported that no independent test split existed. A complete, episode-disjoint 189-episode collection does exist (data/raw_v2_stale_projection). Headline metrics are re-evaluated on it here with every threshold and checkpoint held fixed.",
+    "test_set": "data\\raw_v2_stale_projection",
+    "provenance_and_validity": {
+      "train_episodes": 170,
+      "test_episodes": 189,
+      "episode_id_overlap": 0,
+      "independent": true,
+      "occ_grid_occluded_fraction": {
+        "train_collection": 0.5113333333333333,
+        "test_collection": 0.17871666666666666,
+        "ratio": 2.861139606453418
+      },
+      "obj_tier_distribution": {
+        "train_collection": {
+          "0": 0.3205,
+          "1": 0.1116,
+          "2": 0.568
+        },
+        "test_collection": {
+          "0": 0.3406,
+          "1": 0.0976,
+          "2": 0.5618
+        },
+        "max_abs_drift": 0.020100000000000007
+      },
+      "mean_obj_visibility": {
+        "train_collection": 0.5876381645814098,
+        "test_collection": 0.5816095244455598
+      },
+      "conclusion": "occ_grid differs ~3x between collections while per-object tier distribution and mean visibility agree to within 0.020 / 0.006. Consistent with the documented BevProjector defect being confined to the BEV grid. The per-object pipeline is therefore treated as sound for this test set; the occlusion detector is NOT evaluated on it.",
+      "occlusion_detector_on_this_set": "REFUSED -- ground truth grid is the corrupted one"
+    },
+    "classifier": {
+      "test": {
+        "n_crops": 62528,
+        "n_test_episodes": 189,
+        "accuracy": 0.9679503582395087,
+        "macro_precision": 0.9598476464043065,
+        "macro_recall": 0.9645142162001155,
+        "macro_f1": 0.9621251532416782,
+        "weighted_f1": 0.9679775115871966,
+        "per_class": {
+          "vehicle": {
+            "precision": 0.9693501538995101,
+            "recall": 0.9590803808870206,
+            "f1": 0.9641879217783144,
+            "support": 23314
+          },
+          "pedestrian": {
+            "precision": 0.9337995337995338,
+            "recall": 0.9567709577262957,
+            "f1": 0.9451456883331366,
+            "support": 8374
+          },
+          "background": {
+            "precision": 0.9763932515138758,
+            "recall": 0.9776913099870298,
+            "f1": 0.9770418496135836,
+            "support": 30840
+          }
+        },
+        "confusion_matrix": [
+          [
+            22360,
+            381,
+            573
+          ],
+          [
+            206,
+            8012,
+            156
+          ],
+          [
+            501,
+            187,
+            30152
+          ]
+        ],
+        "expected_calibration_error": 0.06256012729023076,
+        "brier_score_multiclass": 0.05901444552687616,
+        "negative_log_likelihood": 0.1477997750043869,
+        "error_detection_auroc": 0.9459727527959084,
+        "mean_uncertainty": 0.13945549726486206
+      },
+      "validation_for_comparison": {
+        "accuracy": 0.96789356277884,
+        "macro_f1": 0.9652204469510993,
+        "weighted_f1": 0.9679133468502061,
+        "n_crops": 12552
+      },
+      "generalisation_gap_accuracy": -5.679546066872376e-05
+    },
+    "tracking": {
+      "test_paired_observations": 578,
+      "test_episodes_replayed": 189,
+      "test": {
+        "camera": {
+          "v_lat_mae": 0.8651946317531467,
+          "v_fwd_mae": 0.9763852879345161,
+          "position_mae": 2.279114782068657
+        },
+        "radar": {
+          "v_lat_mae": 1.598857821838666,
+          "v_fwd_mae": 0.16126100308209257,
+          "position_mae": 2.6608226264738235
+        },
+        "fused": {
+          "v_lat_mae": 0.7114731963017716,
+          "v_fwd_mae": 0.21727258176438838,
+          "position_mae": 2.275536248639288
+        }
+      },
+      "validation_for_comparison": {
+        "camera": {
+          "v_lat_mae": 0.8186882158013516,
+          "v_fwd_mae": 1.0480352973104725,
+          "position_mae": 2.3268949637669714
+        },
+        "radar": {
+          "v_lat_mae": 1.6826205448638758,
+          "v_fwd_mae": 0.15536517224110266,
+          "position_mae": 2.456512186673639
+        },
+        "fused": {
+          "v_lat_mae": 0.6720891572772818,
+          "v_fwd_mae": 0.1986370220613754,
+          "position_mae": 2.031980043902652
+        }
+      }
+    },
+    "intent": {
+      "test": {
+        "camera": {
+          "n": 3158,
+          "roc_auc": 0.880235357709471,
+          "precision": 0.9076048329779673,
+          "recall": 0.6928920238741183,
+          "f1": 0.7858461538461539,
+          "positive_rate": 0.5835972134262192
+        },
+        "radar": {
+          "n": 2248,
+          "roc_auc": 0.6480768250821107,
+          "precision": 0.9166666666666666,
+          "recall": 0.014166130070830651,
+          "f1": 0.027901077996195307,
+          "positive_rate": 0.6908362989323843
+        },
+        "fused": {
+          "n": 3185,
+          "roc_auc": 0.8673933731185358,
+          "precision": 0.8918309859154929,
+          "recall": 0.8335966298051606,
+          "f1": 0.8617310832879695,
+          "positive_rate": 0.5962323390894819
+        }
+      },
+      "validation_for_comparison": {
+        "camera": {
+          "n": 3665,
+          "roc_auc": 0.7887248486758126,
+          "f1": 0.7326500732064423
+        },
+        "radar": {
+          "n": 2491,
+          "roc_auc": 0.7425345985998406,
+          "f1": 0.03538743136058572
+        },
+        "fused": {
+          "n": 3065,
+          "roc_auc": 0.872895322671243,
+          "f1": 0.8554555680539934
+        }
+      }
+    },
+    "not_evaluated_here": {
+      "occlusion_detector": "REFUSED. This collection's occ_grid is the pre-fix, sign-error ground truth. Scoring the detector against it would be scoring against known-wrong labels."
+    },
+    "caveats": [
+      "This collection was archived, not discarded, precisely because its BEV grid was wrong. Its use here rests on the defect being confined to that grid, which is documented and re-verified empirically above -- but it is an inference, not a guarantee.",
+      "No hyperparameter, threshold or checkpoint was selected using this set.",
+      "The classifier's crops come from labels/, which excludes fully-occluded actors in this collection exactly as in the training one."
+    ]
+  },
+  "intent_lead_time": {
+    "experiment_id": "SP-02-INTENT-LEAD-TIME",
+    "status": "EXECUTED",
+    "bands_s": [
+      [
+        0.0,
+        0.5
+      ],
+      [
+        0.5,
+        1.0
+      ],
+      [
+        1.0,
+        1.5
+      ],
+      [
+        1.5,
+        2.0
+      ],
+      [
+        2.0,
+        2.5
+      ],
+      [
+        2.5,
+        3.01
+      ]
+    ],
+    "ground_truth": "time_to_entry_s from intent_labels.npz (project's own corridor definition)",
+    "evaluation_design": "per band: positives = observations whose true time-to-entry falls in the band; negatives = the common pool of all will_cross==False observations scored by that configuration. Recall is band-specific; precision and AUC share the common negative pool and are comparable across bands for a given configuration.",
+    "min_positives_for_reliability": 20,
+    "by_mode": {
+      "camera": {
+        "n_scored": 3665,
+        "n_negatives_pool": 1751,
+        "bands": {
+          "0.0-0.5s": {
+            "band_s": [
+              0.0,
+              0.5
+            ],
+            "n_positives": 1751,
+            "n_negatives": 1751,
+            "roc_auc": 0.8019782120097156,
+            "pr_auc": 0.8050398094287319,
+            "precision": 0.8292349726775956,
+            "recall": 0.6933181039406053,
+            "f1": 0.7552099533437013,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.7752712735579669,
+            "reliable": true
+          },
+          "0.5-1.0s": {
+            "band_s": [
+              0.5,
+              1.0
+            ],
+            "n_positives": 45,
+            "n_negatives": 1751,
+            "roc_auc": 0.757256171076845,
+            "pr_auc": 0.06834688934632842,
+            "precision": 0.09090909090909091,
+            "recall": 0.5555555555555556,
+            "f1": 0.15625,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.706389999365442,
+            "reliable": true
+          },
+          "1.0-1.5s": {
+            "band_s": [
+              1.0,
+              1.5
+            ],
+            "n_positives": 36,
+            "n_negatives": 1751,
+            "roc_auc": 0.6081048924424138,
+            "pr_auc": 0.028482498013498028,
+            "precision": 0.0421455938697318,
+            "recall": 0.3055555555555556,
+            "f1": 0.07407407407407407,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.581389999365442,
+            "reliable": true
+          },
+          "1.5-2.0s": {
+            "band_s": [
+              1.5,
+              2.0
+            ],
+            "n_positives": 28,
+            "n_negatives": 1751,
+            "roc_auc": 0.5494003426613364,
+            "pr_auc": 0.016738487118061963,
+            "precision": 0.00398406374501992,
+            "recall": 0.03571428571428571,
+            "f1": 0.007168458781362007,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.44646936444480706,
+            "reliable": true
+          },
+          "2.0-2.5s": {
+            "band_s": [
+              2.0,
+              2.5
+            ],
+            "n_positives": 28,
+            "n_negatives": 1751,
+            "roc_auc": 0.6041037774333035,
+            "pr_auc": 0.018895159989441617,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.4286122215876642,
+            "reliable": true
+          },
+          "2.5-3.0s": {
+            "band_s": [
+              2.5,
+              3.0
+            ],
+            "n_positives": 26,
+            "n_negatives": 1751,
+            "roc_auc": 0.657272767209946,
+            "pr_auc": 0.02151956609109684,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 0.8572244431753284,
+            "balanced_accuracy": 0.4286122215876642,
+            "reliable": true
+          }
+        }
+      },
+      "radar": {
+        "n_scored": 2491,
+        "n_negatives_pool": 881,
+        "bands": {
+          "0.0-0.5s": {
+            "band_s": [
+              0.0,
+              0.5
+            ],
+            "n_positives": 1528,
+            "n_negatives": 881,
+            "roc_auc": 0.7337843419246335,
+            "pr_auc": 0.8157695982260023,
+            "precision": 1.0,
+            "recall": 0.018979057591623036,
+            "f1": 0.037251123956326265,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5094895287958116,
+            "reliable": true
+          },
+          "0.5-1.0s": {
+            "band_s": [
+              0.5,
+              1.0
+            ],
+            "n_positives": 39,
+            "n_negatives": 881,
+            "roc_auc": 0.8908000814924765,
+            "pr_auc": 0.22150102244263953,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5,
+            "reliable": true
+          },
+          "1.0-1.5s": {
+            "band_s": [
+              1.0,
+              1.5
+            ],
+            "n_positives": 21,
+            "n_negatives": 881,
+            "roc_auc": 0.9044105724014918,
+            "pr_auc": 0.11207524297745033,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5,
+            "reliable": true
+          },
+          "1.5-2.0s": {
+            "band_s": [
+              1.5,
+              2.0
+            ],
+            "n_positives": 14,
+            "n_negatives": 881,
+            "roc_auc": 0.9206664504621371,
+            "pr_auc": 0.09063228282351138,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5,
+            "reliable": false
+          },
+          "2.0-2.5s": {
+            "band_s": [
+              2.0,
+              2.5
+            ],
+            "n_positives": 7,
+            "n_negatives": 881,
+            "roc_auc": 0.9521647478514675,
+            "pr_auc": 0.08061584080636863,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5,
+            "reliable": false
+          },
+          "2.5-3.0s": {
+            "band_s": [
+              2.5,
+              3.0
+            ],
+            "n_positives": 1,
+            "n_negatives": 881,
+            "roc_auc": 0.9699205448354143,
+            "pr_auc": 0.03571428571428571,
+            "precision": NaN,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 1.0,
+            "balanced_accuracy": 0.5,
+            "reliable": false
+          }
+        }
+      },
+      "fused": {
+        "n_scored": 3065,
+        "n_negatives_pool": 1368,
+        "bands": {
+          "0.0-0.5s": {
+            "band_s": [
+              0.0,
+              0.5
+            ],
+            "n_positives": 1597,
+            "n_negatives": 1368,
+            "roc_auc": 0.8782290533785936,
+            "pr_auc": 0.8691975303444128,
+            "precision": 0.8111731843575419,
+            "recall": 0.9092047589229806,
+            "f1": 0.8573959255978741,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.8310643677655838,
+            "reliable": true
+          },
+          "0.5-1.0s": {
+            "band_s": [
+              0.5,
+              1.0
+            ],
+            "n_positives": 59,
+            "n_negatives": 1368,
+            "roc_auc": 0.7921994251164635,
+            "pr_auc": 0.1350241873416782,
+            "precision": 0.11518324607329843,
+            "recall": 0.7457627118644068,
+            "f1": 0.19954648526077096,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.7493433442362969,
+            "reliable": true
+          },
+          "1.0-1.5s": {
+            "band_s": [
+              1.0,
+              1.5
+            ],
+            "n_positives": 23,
+            "n_negatives": 1368,
+            "roc_auc": 0.7932875667429443,
+            "pr_auc": 0.03749100029553956,
+            "precision": 0.04519774011299435,
+            "recall": 0.6956521739130435,
+            "f1": 0.08488063660477453,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.7242880752606153,
+            "reliable": true
+          },
+          "1.5-2.0s": {
+            "band_s": [
+              1.5,
+              2.0
+            ],
+            "n_positives": 11,
+            "n_negatives": 1368,
+            "roc_auc": 0.7853867623604466,
+            "pr_auc": 0.018798480204020092,
+            "precision": 0.01744186046511628,
+            "recall": 0.5454545454545454,
+            "f1": 0.03380281690140845,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.6491892610313663,
+            "reliable": false
+          },
+          "2.0-2.5s": {
+            "band_s": [
+              2.0,
+              2.5
+            ],
+            "n_positives": 5,
+            "n_negatives": 1368,
+            "roc_auc": 0.7804824561403508,
+            "pr_auc": 0.009358007613157821,
+            "precision": 0.008797653958944282,
+            "recall": 0.6,
+            "f1": 0.017341040462427747,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.6764619883040935,
+            "reliable": false
+          },
+          "2.5-3.0s": {
+            "band_s": [
+              2.5,
+              3.0
+            ],
+            "n_positives": 2,
+            "n_negatives": 1368,
+            "roc_auc": 0.6222587719298246,
+            "pr_auc": 0.0028511225479227274,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": NaN,
+            "specificity": 0.7529239766081871,
+            "balanced_accuracy": 0.37646198830409355,
+            "reliable": false
+          }
+        }
+      }
+    },
+    "interpretation": {
+      "headline": "Fusion substantially extends the detection horizon. At 1.0-1.5s before corridor entry fused recall is 0.696 vs camera 0.306 (2.3x); at 1.5-2.0s it is 0.545 vs 0.036. Radar alone detects essentially nothing at any lead time, consistent with its structural lateral blindness.",
+      "read_recall_not_precision": "Precision and F1 are NOT comparable across bands and must not be quoted per band. Every band shares one large negative pool (thousands of non-crossing observations) while the positive count falls from ~1600 in the nearest band to a handful in the far bands, so precision is driven to near zero by construction regardless of model quality. Recall (band-specific by definition) and ROC-AUC are the interpretable columns.",
+      "label_horizon_vs_realised": "Labels use a 3.0s horizon but realised entry times cluster hard at the near end: of 6,663 observations with a ground-truth entry time, the 0.0-0.5s band holds ~1,600 of the positives each configuration scores, while bands beyond 1.5s hold fewer than 20. The dataset therefore supports lead-time claims only out to about 1.5s.",
+      "radar_auc_artifact": "Radar ROC-AUC appears to RISE with lead time (0.734 to 0.970) while its recall stays at 0.000. AUC is rank-based and does not require the model to cross the decision threshold; with n as low as 1-14 positives those values are unstable and must not be reported as radar improving at long range."
+    },
+    "reliable_bands": {
+      "camera": [
+        "0.0-0.5s",
+        "0.5-1.0s",
+        "1.0-1.5s",
+        "1.5-2.0s",
+        "2.0-2.5s",
+        "2.5-3.0s"
+      ],
+      "radar": [
+        "0.0-0.5s",
+        "0.5-1.0s",
+        "1.0-1.5s"
+      ],
+      "fused": [
+        "0.0-0.5s",
+        "0.5-1.0s",
+        "1.0-1.5s"
+      ]
+    }
+  },
+  "hidden_target_diagnosis": {
+    "experiment_id": "SP-03-HIDDEN-TARGET-DIAGNOSIS",
+    "status": "EXECUTED",
+    "question": "is the 15-event limit data, or an evaluation restriction?",
+    "funnel": {
+      "stage_1_occlusion_transitions_in_ground_truth": 202,
+      "stage_2_actor_was_confirmed_tracked_before_going_hidden": 32,
+      "stage_3_stays_hidden_at_least_0.5s_with_truth": 15,
+      "stage_4_scored_by_first_audit": 15
+    },
+    "attrition": {
+      "stage_1_to_2_lost": 170,
+      "stage_1_to_2_cause": "The actor was never CONFIRMED-tracked while visible, so there is no state to seed a hidden-target predictor from. MultiObjectTracker requires MIN_HITS_TO_CONFIRM=3 consecutive associations. This is a genuine property of the pipeline, not an evaluation artefact: with no prior track there is literally nothing to propagate.",
+      "stage_2_to_3_lost": 17,
+      "stage_2_to_3_cause": "re-emerged (or amodal truth ended) before the shortest 0.5s horizon could be scored"
+    },
+    "hidden_run_length_distribution": {
+      "n_transitions": 202,
+      "median_frames_hidden": 4.0,
+      "mean_frames_hidden": 11.024752475247524,
+      "frac_hidden_>=5_frames_0p5s": 0.4752475247524752,
+      "frac_hidden_>=10_frames_1p0s": 0.3415841584158416,
+      "frac_hidden_>=20_frames_2p0s": 0.16831683168316833,
+      "frac_hidden_>=30_frames_3p0s": 0.054455445544554455,
+      "p90_frames_hidden": 25.0,
+      "max_frames_hidden": 313.0
+    },
+    "verdict": {
+      "classification": "A + pipeline-inherent: genuinely few scorable events",
+      "explanation": "Of 202 ground-truth occlusion transitions, only 32 (15.8%) involved an actor the tracker had already confirmed, and only 15 of those stayed hidden long enough to score. The dominant loss is upstream of the hidden-target evaluation: most actors that go behind an occluder were never solidly tracked in the first place. That is a real limitation of the perception chain, not a bug in the evaluation, and it cannot be fixed by changing the scoring."
+    },
+    "actions_considered_and_rejected": [
+      "Lowering MIN_HITS_TO_CONFIRM to admit more events -- rejected: it would change the tracker's behaviour, i.e. the system under test.",
+      "Widening the 5 m association gate -- rejected: same reason, and it would flatter the result by admitting looser matches.",
+      "Seeding the hidden predictor from ground truth instead of the last confirmed estimate -- rejected: that leaks privileged state and is not what pipeline._handoff does at runtime."
+    ]
+  },
+  "fault_severity": {
+    "experiment_id": "SP-04-FAULT-SEVERITY",
+    "status": "EXECUTED",
+    "question": "How much do the three SILENT failures degrade the pipeline as severity rises, and does the health monitor ever notice?",
+    "method": "each fault is the shipped function from scripts.adversarial_test, invoked via functools.partial with a different value of its own existing severity keyword; no new fault model was written",
+    "episodes": 24,
+    "health_degraded_threshold": 0.6,
+    "clean_baseline": {
+      "pos_rmse_m": 2.151674263560416,
+      "v_lat_mae_ms": 0.8820206291300468,
+      "intent_auc": 0.8600324047457273,
+      "camera_health": 0.9933333333333333,
+      "radar_health": 0.8766762656245697
+    },
+    "sweeps": {
+      "radar_bias": {
+        "severity_parameter": "offset_m",
+        "default_value": 2.5,
+        "values_swept": [
+          0.5,
+          1.0,
+          2.5,
+          5.0,
+          10.0,
+          20.0
+        ],
+        "rows": [
+          {
+            "offset_m": 0.5,
+            "is_default": false,
+            "pos_rmse_m": 1.9655460409360075,
+            "v_lat_mae_ms": 0.8925088749904656,
+            "hidden_rmse_m": 2.9398152751386757,
+            "intent_auc": 0.8712829226847918,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8767384400812923,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": -0.18612822262440853,
+            "delta_v_lat_mae": 0.010488245860418854,
+            "delta_intent_auc": 0.011250517939064508
+          },
+          {
+            "offset_m": 1.0,
+            "is_default": false,
+            "pos_rmse_m": 1.9564580486917835,
+            "v_lat_mae_ms": 0.886268666134958,
+            "hidden_rmse_m": 2.984127061638225,
+            "intent_auc": 0.879274369737585,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8767768452414901,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": -0.1952162148686325,
+            "delta_v_lat_mae": 0.004248037004911276,
+            "delta_intent_auc": 0.019241964991857707
+          },
+          {
+            "offset_m": 2.5,
+            "is_default": true,
+            "pos_rmse_m": 2.247418790477479,
+            "v_lat_mae_ms": 1.0453476369039252,
+            "hidden_rmse_m": 3.3461794040565436,
+            "intent_auc": 0.8519218116603349,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8769904021170077,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.09574452691706314,
+            "delta_v_lat_mae": 0.16332700777387843,
+            "delta_intent_auc": -0.008110593085392415
+          },
+          {
+            "offset_m": 5.0,
+            "is_default": false,
+            "pos_rmse_m": 3.3218199573773455,
+            "v_lat_mae_ms": 1.4334186096610535,
+            "hidden_rmse_m": 3.062975900265706,
+            "intent_auc": 0.7972350230414746,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8773607750572067,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 1.1701456938169295,
+            "delta_v_lat_mae": 0.5513979805310067,
+            "delta_intent_auc": -0.06279738170425264
+          },
+          {
+            "offset_m": 10.0,
+            "is_default": false,
+            "pos_rmse_m": 2.7912358910314206,
+            "v_lat_mae_ms": 1.8549225310432689,
+            "hidden_rmse_m": 2.7630480653818776,
+            "intent_auc": 0.7070630081300813,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8680804813599039,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.6395616274710045,
+            "delta_v_lat_mae": 0.9729019019132221,
+            "delta_intent_auc": -0.152969396615646
+          },
+          {
+            "offset_m": 20.0,
+            "is_default": false,
+            "pos_rmse_m": 2.940966631142775,
+            "v_lat_mae_ms": 2.6762730770327408,
+            "hidden_rmse_m": 3.503225300860999,
+            "intent_auc": 0.8210922787193974,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8672484230586281,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.7892923675823589,
+            "delta_v_lat_mae": 1.794252447902694,
+            "delta_intent_auc": -0.0389401260263299
+          }
+        ],
+        "monitor_first_flags_at": null,
+        "monitor_never_flags": true,
+        "max_delta_pos_rmse_m": 1.1701456938169295,
+        "max_abs_delta_intent_auc": 0.152969396615646
+      },
+      "radar_clutter": {
+        "severity_parameter": "n_extra",
+        "default_value": 40,
+        "values_swept": [
+          10,
+          20,
+          40,
+          80,
+          160,
+          320
+        ],
+        "rows": [
+          {
+            "n_extra": 10,
+            "is_default": false,
+            "pos_rmse_m": 2.3522134356486455,
+            "v_lat_mae_ms": 1.0264186443543835,
+            "hidden_rmse_m": 3.4572427910395196,
+            "intent_auc": 0.842377596639929,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9125329644444751,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.20053917208822947,
+            "delta_v_lat_mae": 0.1443980152243367,
+            "delta_intent_auc": -0.017654808105798336
+          },
+          {
+            "n_extra": 20,
+            "is_default": false,
+            "pos_rmse_m": 2.2401302319943457,
+            "v_lat_mae_ms": 0.9868241388291045,
+            "hidden_rmse_m": 3.137161219254478,
+            "intent_auc": 0.8613823715916297,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9417914880952382,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.08845596843392967,
+            "delta_v_lat_mae": 0.10480350969905772,
+            "delta_intent_auc": 0.001349966845902384
+          },
+          {
+            "n_extra": 40,
+            "is_default": true,
+            "pos_rmse_m": 2.4289761763657354,
+            "v_lat_mae_ms": 1.1412420948017656,
+            "hidden_rmse_m": 3.2402188844075974,
+            "intent_auc": 0.8573615663274108,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9666865851866483,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.27730191280531935,
+            "delta_v_lat_mae": 0.2592214656717189,
+            "delta_intent_auc": -0.0026708384183165013
+          },
+          {
+            "n_extra": 80,
+            "is_default": false,
+            "pos_rmse_m": 2.55018130203242,
+            "v_lat_mae_ms": 1.4858641793433465,
+            "hidden_rmse_m": 2.8062685919260133,
+            "intent_auc": 0.8041914137545675,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9784146724888007,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.3985070384720042,
+            "delta_v_lat_mae": 0.6038435502132997,
+            "delta_intent_auc": -0.0558409909911598
+          },
+          {
+            "n_extra": 160,
+            "is_default": false,
+            "pos_rmse_m": 2.8508737426800117,
+            "v_lat_mae_ms": 1.7785573551591778,
+            "hidden_rmse_m": 3.40673212810942,
+            "intent_auc": 0.8392691773421824,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9827911655757112,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.6991994791195957,
+            "delta_v_lat_mae": 0.896536726029131,
+            "delta_intent_auc": -0.02076322740354486
+          },
+          {
+            "n_extra": 320,
+            "is_default": false,
+            "pos_rmse_m": 3.299416919082537,
+            "v_lat_mae_ms": 1.799032064353806,
+            "hidden_rmse_m": 3.3369735334606316,
+            "intent_auc": 0.7756926355671324,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.9933333333333333,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 1.147742655522121,
+            "delta_v_lat_mae": 0.9170114352237593,
+            "delta_intent_auc": -0.08433976917859487
+          }
+        ],
+        "monitor_first_flags_at": null,
+        "monitor_never_flags": true,
+        "max_delta_pos_rmse_m": 1.147742655522121,
+        "max_abs_delta_intent_auc": 0.08433976917859487
+      },
+      "extrinsic_drift": {
+        "severity_parameter": "yaw_deg",
+        "default_value": 4.0,
+        "values_swept": [
+          1.0,
+          2.0,
+          4.0,
+          8.0,
+          16.0,
+          32.0
+        ],
+        "rows": [
+          {
+            "yaw_deg": 1.0,
+            "is_default": false,
+            "pos_rmse_m": 2.178483052716408,
+            "v_lat_mae_ms": 0.6764830576249586,
+            "hidden_rmse_m": 3.355687298486113,
+            "intent_auc": 0.9021209740769836,
+            "n_detections": 1113,
+            "camera_health": 0.9933333333333333,
+            "radar_health": 0.8790101119576769,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.026808789155992052,
+            "delta_v_lat_mae": -0.2055375715050881,
+            "delta_intent_auc": 0.042088569331256265
+          },
+          {
+            "yaw_deg": 2.0,
+            "is_default": false,
+            "pos_rmse_m": 2.2422826632475097,
+            "v_lat_mae_ms": 0.6127269149810703,
+            "hidden_rmse_m": 3.389880289134814,
+            "intent_auc": 0.9328382838283829,
+            "n_detections": 1113,
+            "camera_health": 0.995,
+            "radar_health": 0.8890963197999814,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.09060839968709367,
+            "delta_v_lat_mae": -0.2692937141489764,
+            "delta_intent_auc": 0.07280587908265557
+          },
+          {
+            "yaw_deg": 4.0,
+            "is_default": true,
+            "pos_rmse_m": 2.260038954309092,
+            "v_lat_mae_ms": 0.831321649945363,
+            "hidden_rmse_m": 3.9574316877569524,
+            "intent_auc": 0.9312219511460498,
+            "n_detections": 1113,
+            "camera_health": 0.9966666666666667,
+            "radar_health": 0.8894687601343398,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.10836469074867594,
+            "delta_v_lat_mae": -0.0506989791846838,
+            "delta_intent_auc": 0.07118954640032249
+          },
+          {
+            "yaw_deg": 8.0,
+            "is_default": false,
+            "pos_rmse_m": 2.480049730453215,
+            "v_lat_mae_ms": 1.0656284637963185,
+            "hidden_rmse_m": 3.031023269457524,
+            "intent_auc": 0.923915534457358,
+            "n_detections": 1113,
+            "camera_health": 0.9700000000000001,
+            "radar_health": 0.8448071805772482,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.32837546689279895,
+            "delta_v_lat_mae": 0.18360783466627173,
+            "delta_intent_auc": 0.06388312971163068
+          },
+          {
+            "yaw_deg": 16.0,
+            "is_default": false,
+            "pos_rmse_m": 2.463029418847459,
+            "v_lat_mae_ms": 1.0881782060590515,
+            "hidden_rmse_m": 2.8099839207071393,
+            "intent_auc": 0.932092004381161,
+            "n_detections": 1113,
+            "camera_health": 0.9533333333333333,
+            "radar_health": 0.8476439989958395,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.31135515528704305,
+            "delta_v_lat_mae": 0.20615757692900472,
+            "delta_intent_auc": 0.07205959963543374
+          },
+          {
+            "yaw_deg": 32.0,
+            "is_default": false,
+            "pos_rmse_m": 2.757077400584176,
+            "v_lat_mae_ms": 1.0925510672061336,
+            "hidden_rmse_m": 3.0239102747956115,
+            "intent_auc": 0.9317636799651188,
+            "n_detections": 1113,
+            "camera_health": 0.9316666666666666,
+            "radar_health": 0.8256815821479279,
+            "health_flags_degraded": false,
+            "delta_pos_rmse_m": 0.6054031370237598,
+            "delta_v_lat_mae": 0.21053043807608685,
+            "delta_intent_auc": 0.07173127521939149
+          }
+        ],
+        "monitor_first_flags_at": null,
+        "monitor_never_flags": true,
+        "max_delta_pos_rmse_m": 0.6054031370237598,
+        "max_abs_delta_intent_auc": 0.07280587908265557
+      }
+    },
+    "denominator_note": "metrics are aggregated over all VRU observations in the sampled episodes; n_detections is reported per condition",
+    "interpretation": {
+      "headline_monitor_never_wakes": "Across every severity tested -- up to 8x the shipped magnitude (radar_bias 20 m, radar_clutter 320 spurious returns, extrinsic_drift 32 deg) -- radar health never fell below the 0.6 degraded threshold. It stayed in 0.83-0.99. The first audit showed these faults are undetected at one severity; this shows they are undetected across the whole range, so it is not a threshold-tuning problem.",
+      "damage_is_real_and_dose_dependent": {
+        "radar_bias": "v_lat MAE 0.893 -> 2.676 m/s and intent AUC 0.871 -> 0.707 as offset goes 0.5 -> 20 m",
+        "radar_clutter": "v_lat MAE 1.026 -> 1.799 m/s and position RMSE +1.148 m at n_extra=320",
+        "extrinsic_drift": "position RMSE +0.605 m at 32 deg; intent AUC stays high (0.90-0.93)"
+      },
+      "PERVERSE_radar_clutter_raises_health": "The most important finding here. Radar health INCREASES monotonically with clutter: [(10, 0.9125329644444751), (20, 0.9417914880952382), (40, 0.9666865851866483), (80, 0.9784146724888007), (160, 0.9827911655757112), (320, 0.9933333333333333)]. perception.radar_confidence is documented as a density + cluster-tightness proxy because CARLA exposes no SNR, so injecting spurious returns raises measured density and the sensor scores as HEALTHIER precisely as it becomes less trustworthy. This is a structural defect in the health metric, not a tuning issue, and no threshold on this statistic can fix it.",
+      "non_monotonic_caveat": "Some cells are non-monotonic (radar_bias position RMSE peaks at 5 m then falls; small biases marginally improve position). With 24 episodes these wiggles are within noise and only the overall trend should be quoted."
+    }
+  },
+  "distributions": {
+    "experiment_id": "SP-05-ERROR-DISTRIBUTIONS",
+    "n_paired_observations": 845,
+    "denominator": "paired observation = (episode, frame, actor) tracked by all three modes AND moving laterally >= 0.3 m/s",
+    "by_mode": {
+      "camera": {
+        "v_lat": {
+          "n": 845,
+          "mean": 0.8186882158013516,
+          "median": 0.689585370082459,
+          "iqr": [
+            0.3231647675466336,
+            1.175827332285082
+          ],
+          "p90": 1.5579976927430814,
+          "p95": 2.1249762041811255,
+          "max": 3.1258613627950265,
+          "std": 0.6391627253256295
+        },
+        "v_fwd": {
+          "n": 845,
+          "mean": 1.0480352973104725,
+          "median": 0.4915096314748431,
+          "iqr": [
+            0.2672799313031982,
+            0.9037299357404526
+          ],
+          "p90": 1.67294444851595,
+          "p95": 6.064915574292747,
+          "max": 12.515559553703294,
+          "std": 1.8856973021991783
+        },
+        "position": {
+          "n": 845,
+          "mean": 2.3268949637669714,
+          "median": 2.105094434225313,
+          "iqr": [
+            1.2996963727028743,
+            3.387210988958984
+          ],
+          "p90": 4.17871996014195,
+          "p95": 4.520234051918772,
+          "max": 4.976197184369699,
+          "std": 1.2624170230943133
+        }
+      },
+      "radar": {
+        "v_lat": {
+          "n": 845,
+          "mean": 1.6826205448638758,
+          "median": 1.8528424501419067,
+          "iqr": [
+            1.3831788301467896,
+            1.9999899864196777
+          ],
+          "p90": 1.9999998807907104,
+          "p95": 2.0,
+          "max": 2.0,
+          "std": 0.35349551399828516
+        },
+        "v_fwd": {
+          "n": 845,
+          "mean": 0.15536517224110266,
+          "median": 0.10146479208527698,
+          "iqr": [
+            0.01456670791181755,
+            0.23515465991035595
+          ],
+          "p90": 0.35630824441912656,
+          "p95": 0.4526292342567387,
+          "max": 1.1708809237711284,
+          "std": 0.1770072086499347
+        },
+        "position": {
+          "n": 845,
+          "mean": 2.456512186673639,
+          "median": 2.2633868029649595,
+          "iqr": [
+            1.6849779135124843,
+            3.2404421712074036
+          ],
+          "p90": 3.989675124825691,
+          "p95": 4.410413019225319,
+          "max": 4.97388276769321,
+          "std": 1.0628786536220443
+        }
+      },
+      "fused": {
+        "v_lat": {
+          "n": 845,
+          "mean": 0.6720891572772818,
+          "median": 0.34124680483375114,
+          "iqr": [
+            0.11070020838913552,
+            0.9290511077814875
+          ],
+          "p90": 1.5804113028366553,
+          "p95": 2.476001622840965,
+          "max": 8.736785630966086,
+          "std": 0.872964770912401
+        },
+        "v_fwd": {
+          "n": 845,
+          "mean": 0.1986370220613754,
+          "median": 0.1343319551773187,
+          "iqr": [
+            0.03658680566005459,
+            0.2569205190253698
+          ],
+          "p90": 0.4528465303432324,
+          "p95": 0.651235244994013,
+          "max": 3.0994193898062603,
+          "std": 0.24289682473511573
+        },
+        "position": {
+          "n": 845,
+          "mean": 2.031980043902652,
+          "median": 1.7146776375135748,
+          "iqr": [
+            1.4170462078905406,
+            2.346013853176378
+          ],
+          "p90": 3.718374918673426,
+          "p95": 4.3799054098344525,
+          "max": 4.987362978798633,
+          "std": 1.0364133713517707
+        }
+      }
+    },
+    "tail_comparison": {
+      "v_lat": {
+        "p95_camera": 2.1249762041811255,
+        "p95_radar": 2.0,
+        "p95_fused": 2.476001622840965,
+        "fusion_reduces_p95_vs_camera": false,
+        "fusion_reduces_p95_vs_radar": false
+      },
+      "v_fwd": {
+        "p95_camera": 6.064915574292747,
+        "p95_radar": 0.4526292342567387,
+        "p95_fused": 0.651235244994013,
+        "fusion_reduces_p95_vs_camera": true,
+        "fusion_reduces_p95_vs_radar": false
+      },
+      "position": {
+        "p95_camera": 4.520234051918772,
+        "p95_radar": 4.410413019225319,
+        "p95_fused": 4.3799054098344525,
+        "fusion_reduces_p95_vs_camera": true,
+        "fusion_reduces_p95_vs_radar": true
+      }
+    },
+    "why_tails_matter": "A mean hides whether a configuration is consistently adequate or occasionally catastrophic. For a braking decision the 95th percentile error is the operative number, not the average."
+  },
+  "effect_sizes": {
+    "experiment_id": "SP-06-EFFECT-SIZES",
+    "n_paired_observations": 845,
+    "note": "complements the first pass's bootstrap p-values: a p-value reports whether a difference is distinguishable from zero, an effect size reports whether it is large enough to care about",
+    "tests": {
+      "v_lat": {
+        "fused_vs_camera": {
+          "mean_difference": -0.1465990585240697,
+          "cohens_dz_paired": -0.14483725553072155,
+          "prob_a_better_than_b": 0.6331360946745562,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        },
+        "fused_vs_radar": {
+          "mean_difference": -1.0105313875865938,
+          "cohens_dz_paired": -1.114965590539727,
+          "prob_a_better_than_b": 0.8769230769230769,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        }
+      },
+      "v_fwd": {
+        "fused_vs_camera": {
+          "mean_difference": -0.8493982752490973,
+          "cohens_dz_paired": -0.4484332702311927,
+          "prob_a_better_than_b": 0.842603550295858,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        },
+        "fused_vs_radar": {
+          "mean_difference": 0.043271849820272795,
+          "cohens_dz_paired": 0.1855191977357279,
+          "prob_a_better_than_b": 0.42011834319526625,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        }
+      },
+      "position": {
+        "fused_vs_camera": {
+          "mean_difference": -0.2949149198643193,
+          "cohens_dz_paired": -0.18853600726145178,
+          "prob_a_better_than_b": 0.5680473372781065,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        },
+        "fused_vs_radar": {
+          "mean_difference": -0.4245321427709866,
+          "cohens_dz_paired": -0.3724372679649921,
+          "prob_a_better_than_b": 0.7538461538461538,
+          "interpretation": "|dz| < 0.2 negligible, < 0.5 small, < 0.8 medium, else large (Cohen's conventions)"
+        }
+      }
+    }
+  },
+  "breakdowns": {
+    "experiment_id": "SP-07-BREAKDOWNS",
+    "min_n_for_report": 30,
+    "tracking_by_range": {
+      "0-10m": {
+        "n": 766,
+        "camera": {
+          "v_lat_mae": 0.8239235680386444,
+          "position_mae": 2.273379892364734
+        },
+        "radar": {
+          "v_lat_mae": 1.6764252480732242,
+          "position_mae": 2.4101874627670865
+        },
+        "fused": {
+          "v_lat_mae": 0.6849258056587328,
+          "position_mae": 1.9935628396726406
+        }
+      },
+      "10-20m": {
+        "n": 79,
+        "camera": {
+          "v_lat_mae": 0.7679251801840558,
+          "position_mae": 2.8457879345785435
+        },
+        "radar": {
+          "v_lat_mae": 1.7426913972896865,
+          "position_mae": 2.905686091894134
+        },
+        "fused": {
+          "v_lat_mae": 0.5476224147432128,
+          "position_mae": 2.404481036816436
+        }
+      }
+    },
+    "intent_by_scenario": {
+      "multi_occlusion": {
+        "camera": {
+          "n": 1666,
+          "positive_rate": 0.6482593037214885,
+          "roc_auc": 0.8151023890784983,
+          "precision": 0.8404040404040404,
+          "recall": 0.7703703703703704,
+          "f1": 0.803864734299517
+        },
+        "radar": {
+          "n": 1826,
+          "positive_rate": 0.6588170865279299,
+          "roc_auc": 0.7188622878331192,
+          "precision": 1.0,
+          "recall": 0.022443890274314215,
+          "f1": 0.04390243902439024
+        },
+        "fused": {
+          "n": 1989,
+          "positive_rate": 0.6098541980894923,
+          "roc_auc": 0.8589204366782536,
+          "precision": 0.8468185388845247,
+          "recall": 0.8887056883759274,
+          "f1": 0.8672566371681416
+        }
+      },
+      "occluded_pedestrian_crossing": {
+        "camera": {
+          "n": 515,
+          "positive_rate": 0.2737864077669903,
+          "roc_auc": 0.9565934691091137,
+          "precision": 0.8034188034188035,
+          "recall": 0.6666666666666666,
+          "f1": 0.7286821705426356
+        },
+        "radar": {
+          "n": 44,
+          "positive_rate": 0.7045454545454546,
+          "roc_auc": 1.0,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN
+        },
+        "fused": {
+          "n": 83,
+          "positive_rate": 0.3855421686746988,
+          "roc_auc": 0.9154411764705882,
+          "precision": 0.5084745762711864,
+          "recall": 0.9375,
+          "f1": 0.6593406593406593
+        }
+      },
+      "urban_crossing": {
+        "camera": {
+          "n": 1484,
+          "positive_rate": 0.4669811320754717,
+          "roc_auc": 0.6522384765115485,
+          "precision": 0.8248730964467005,
+          "recall": 0.468975468975469,
+          "f1": 0.5979760809567618
+        },
+        "radar": {
+          "n": 621,
+          "positive_rate": 0.605475040257649,
+          "roc_auc": 0.796754233608337,
+          "precision": 1.0,
+          "recall": 0.005319148936170213,
+          "f1": 0.010582010582010583
+        },
+        "fused": {
+          "n": 993,
+          "positive_rate": 0.4551863041289023,
+          "roc_auc": 0.9053457216233458,
+          "precision": 0.7836812144212524,
+          "recall": 0.9137168141592921,
+          "f1": 0.8437180796731358
+        }
+      }
+    },
+    "intent_by_range": {
+      "0-10m": {
+        "camera": {
+          "n": 2023,
+          "positive_rate": 0.703905091448344,
+          "roc_auc": 0.7160729024028812,
+          "precision": 0.8566340160284951,
+          "recall": 0.675561797752809,
+          "f1": 0.7553985080486847
+        },
+        "radar": {
+          "n": 2069,
+          "positive_rate": 0.6776220396326728,
+          "roc_auc": 0.7492065308287369,
+          "precision": 1.0,
+          "recall": 0.020684736091298145,
+          "f1": 0.04053109713487072
+        },
+        "fused": {
+          "n": 2203,
+          "positive_rate": 0.6472991375397186,
+          "roc_auc": 0.880513302322559,
+          "precision": 0.8681757656458056,
+          "recall": 0.9144460028050491,
+          "f1": 0.8907103825136612
+        }
+      },
+      "10-20m": {
+        "camera": {
+          "n": 1271,
+          "positive_rate": 0.32494099134539733,
+          "roc_auc": 0.8900633265040044,
+          "precision": 0.7774725274725275,
+          "recall": 0.6852300242130751,
+          "f1": 0.7284427284427284
+        },
+        "radar": {
+          "n": 358,
+          "positive_rate": 0.547486033519553,
+          "roc_auc": 0.6821145124716553,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN
+        },
+        "fused": {
+          "n": 690,
+          "positive_rate": 0.3884057971014493,
+          "roc_auc": 0.775535827969159,
+          "precision": 0.6217765042979942,
+          "recall": 0.8097014925373134,
+          "f1": 0.7034035656401944
+        }
+      },
+      "20-30m": {
+        "camera": {
+          "n": 244,
+          "positive_rate": 0.2459016393442623,
+          "roc_auc": 0.6116847826086956,
+          "precision": 0.3333333333333333,
+          "recall": 0.06666666666666667,
+          "f1": 0.1111111111111111
+        },
+        "radar": {
+          "n": 34,
+          "positive_rate": 0.23529411764705882,
+          "roc_auc": 0.9951923076923077,
+          "precision": NaN,
+          "recall": 0.0,
+          "f1": NaN
+        },
+        "fused": {
+          "n": 96,
+          "positive_rate": 0.03125,
+          "roc_auc": 0.6505376344086021,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": NaN
+        }
+      },
+      "30-40m": {
+        "camera": {
+          "n": 106,
+          "positive_rate": 0.1320754716981132,
+          "roc_auc": 0.6638198757763976,
+          "precision": 1.0,
+          "recall": 0.14285714285714285,
+          "f1": 0.25
+        },
+        "radar": null,
+        "fused": {
+          "n": 44,
+          "note": "single-class subset; AUC undefined",
+          "positive_rate": 0.0
+        }
+      },
+      "40-infm": {
+        "camera": null,
+        "radar": null,
+        "fused": {
+          "n": 32,
+          "note": "single-class subset; AUC undefined",
+          "positive_rate": 0.0
+        }
+      }
+    },
+    "classifier_by_visibility_fraction": {
+      "0.00-0.25": {
+        "n": 509,
+        "accuracy": 0.8526522593320236,
+        "mean_uncertainty": 0.25445982813835144
+      },
+      "0.25-0.50": {
+        "n": 448,
+        "accuracy": 0.8861607142857143,
+        "mean_uncertainty": 0.210969939827919
+      },
+      "0.50-0.75": {
+        "n": 504,
+        "accuracy": 0.9265873015873016,
+        "mean_uncertainty": 0.15630997717380524
+      },
+      "0.75-1.00": {
+        "n": 5519,
+        "accuracy": 0.9730023554991847,
+        "mean_uncertainty": 0.13275407254695892
+      }
+    },
+    "spearman_uncertainty_vs_error": {
+      "rho": 0.29720145983595614,
+      "n": 6980,
+      "interpretation": "positive rho means higher uncertainty accompanies more errors, i.e. the uncertainty is ordered with difficulty"
+    },
+    "classifier_size_analysis": {
+      "status": "SKIPPED",
+      "reason": "raw_predictions_val.npz stores tier and visibility but not the crop's pixel dimensions, and re-deriving them would require re-running inference. Visibility fraction is reported instead, which is the difficulty axis the project itself defines."
+    }
+  },
+  "spatial_errors": {
+    "experiment_id": "SP-08-OCCLUSION-SPATIAL-ERRORS",
+    "status": "EXECUTED",
+    "question": "where in the BEV grid does the occlusion detector fail?",
+    "method": "same fixed operating point and same held-out frame set as AUDIT-B-OCCLUSION-HOLDOUT (seed 1234, sweep's seed-0 sample excluded); nothing was retuned",
+    "n_frames": 300,
+    "denominator": "BEV grid CELLS; each frame contributes 400",
+    "by_range_ring": [
+      {
+        "range_m": [
+          0.0,
+          2.0
+        ],
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6000,
+        "gt_occluded_fraction": 0.0,
+        "precision": NaN,
+        "recall": NaN,
+        "f1": NaN
+      },
+      {
+        "range_m": [
+          2.0,
+          4.0
+        ],
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 6000,
+        "gt_occluded_fraction": 0.0,
+        "precision": NaN,
+        "recall": NaN,
+        "f1": NaN
+      },
+      {
+        "range_m": [
+          4.0,
+          6.0
+        ],
+        "tp": 25,
+        "fp": 867,
+        "fn": 6,
+        "tn": 5102,
+        "gt_occluded_fraction": 0.005166666666666667,
+        "precision": 0.028026905829596414,
+        "recall": 0.8064516129032258,
+        "f1": 0.05417118093174431
+      },
+      {
+        "range_m": [
+          6.0,
+          8.0
+        ],
+        "tp": 123,
+        "fp": 1355,
+        "fn": 6,
+        "tn": 4516,
+        "gt_occluded_fraction": 0.0215,
+        "precision": 0.08322056833558863,
+        "recall": 0.9534883720930233,
+        "f1": 0.15308027380211575
+      },
+      {
+        "range_m": [
+          8.0,
+          10.0
+        ],
+        "tp": 414,
+        "fp": 1631,
+        "fn": 25,
+        "tn": 3930,
+        "gt_occluded_fraction": 0.07316666666666667,
+        "precision": 0.20244498777506112,
+        "recall": 0.9430523917995444,
+        "f1": 0.3333333333333333
+      },
+      {
+        "range_m": [
+          10.0,
+          12.0
+        ],
+        "tp": 989,
+        "fp": 1629,
+        "fn": 73,
+        "tn": 3309,
+        "gt_occluded_fraction": 0.177,
+        "precision": 0.3777692895339954,
+        "recall": 0.931261770244821,
+        "f1": 0.5375
+      },
+      {
+        "range_m": [
+          12.0,
+          14.0
+        ],
+        "tp": 1653,
+        "fp": 1568,
+        "fn": 135,
+        "tn": 2644,
+        "gt_occluded_fraction": 0.298,
+        "precision": 0.5131946600434648,
+        "recall": 0.924496644295302,
+        "f1": 0.6600119784388102
+      },
+      {
+        "range_m": [
+          14.0,
+          16.0
+        ],
+        "tp": 2259,
+        "fp": 1556,
+        "fn": 153,
+        "tn": 2032,
+        "gt_occluded_fraction": 0.402,
+        "precision": 0.5921363040629095,
+        "recall": 0.9365671641791045,
+        "f1": 0.7255500240886462
+      },
+      {
+        "range_m": [
+          16.0,
+          18.0
+        ],
+        "tp": 2734,
+        "fp": 1642,
+        "fn": 173,
+        "tn": 1451,
+        "gt_occluded_fraction": 0.4845,
+        "precision": 0.6247714808043876,
+        "recall": 0.9404884760921912,
+        "f1": 0.7507895098173829
+      },
+      {
+        "range_m": [
+          18.0,
+          20.0
+        ],
+        "tp": 3319,
+        "fp": 1625,
+        "fn": 203,
+        "tn": 853,
+        "gt_occluded_fraction": 0.587,
+        "precision": 0.6713187702265372,
+        "recall": 0.9423622941510506,
+        "f1": 0.7840774864162532
+      },
+      {
+        "range_m": [
+          20.0,
+          22.0
+        ],
+        "tp": 3907,
+        "fp": 1603,
+        "fn": 247,
+        "tn": 243,
+        "gt_occluded_fraction": 0.6923333333333334,
+        "precision": 0.7090744101633394,
+        "recall": 0.9405392392874338,
+        "f1": 0.8085678807947019
+      },
+      {
+        "range_m": [
+          22.0,
+          24.0
+        ],
+        "tp": 4037,
+        "fp": 1495,
+        "fn": 274,
+        "tn": 194,
+        "gt_occluded_fraction": 0.7185,
+        "precision": 0.7297541576283442,
+        "recall": 0.9364416608675481,
+        "f1": 0.8202783704155238
+      },
+      {
+        "range_m": [
+          24.0,
+          26.0
+        ],
+        "tp": 3977,
+        "fp": 1492,
+        "fn": 307,
+        "tn": 224,
+        "gt_occluded_fraction": 0.714,
+        "precision": 0.7271896141890657,
+        "recall": 0.9283380018674137,
+        "f1": 0.8155439351994258
+      },
+      {
+        "range_m": [
+          26.0,
+          28.0
+        ],
+        "tp": 4181,
+        "fp": 1348,
+        "fn": 302,
+        "tn": 169,
+        "gt_occluded_fraction": 0.7471666666666666,
+        "precision": 0.7561946102369326,
+        "recall": 0.9326343966094134,
+        "f1": 0.8351977626847783
+      },
+      {
+        "range_m": [
+          28.0,
+          30.0
+        ],
+        "tp": 4199,
+        "fp": 1249,
+        "fn": 370,
+        "tn": 182,
+        "gt_occluded_fraction": 0.7615,
+        "precision": 0.770741556534508,
+        "recall": 0.919019479098271,
+        "f1": 0.8383747629030648
+      },
+      {
+        "range_m": [
+          30.0,
+          32.0
+        ],
+        "tp": 4725,
+        "fp": 805,
+        "fn": 384,
+        "tn": 86,
+        "gt_occluded_fraction": 0.8515,
+        "precision": 0.8544303797468354,
+        "recall": 0.9248385202583675,
+        "f1": 0.8882413760691795
+      },
+      {
+        "range_m": [
+          32.0,
+          34.0
+        ],
+        "tp": 4417,
+        "fp": 980,
+        "fn": 451,
+        "tn": 152,
+        "gt_occluded_fraction": 0.8113333333333334,
+        "precision": 0.8184176394293126,
+        "recall": 0.907354149548069,
+        "f1": 0.8605942523136872
+      },
+      {
+        "range_m": [
+          34.0,
+          36.0
+        ],
+        "tp": 4691,
+        "fp": 787,
+        "fn": 422,
+        "tn": 100,
+        "gt_occluded_fraction": 0.8521666666666666,
+        "precision": 0.8563344286235852,
+        "recall": 0.9174652845687463,
+        "f1": 0.885846473420829
+      },
+      {
+        "range_m": [
+          36.0,
+          38.0
+        ],
+        "tp": 4744,
+        "fp": 635,
+        "fn": 519,
+        "tn": 102,
+        "gt_occluded_fraction": 0.8771666666666667,
+        "precision": 0.8819483175311397,
+        "recall": 0.9013870416112484,
+        "f1": 0.8915617365156927
+      },
+      {
+        "range_m": [
+          38.0,
+          40.0
+        ],
+        "tp": 4439,
+        "fp": 553,
+        "fn": 862,
+        "tn": 146,
+        "gt_occluded_fraction": 0.8835,
+        "precision": 0.8892227564102564,
+        "recall": 0.8373891718543671,
+        "f1": 0.8625279316040028
+      }
+    ],
+    "by_range_band": {
+      "0-10m": {
+        "tp": 562,
+        "fp": 3853,
+        "fn": 37,
+        "precision": 0.1272933182332956,
+        "recall": 0.9382303839732888,
+        "f1": 0.2241723175109693
+      },
+      "10-20m": {
+        "tp": 10954,
+        "fp": 8020,
+        "fn": 737,
+        "precision": 0.577316327606198,
+        "recall": 0.9369600547429646,
+        "f1": 0.7144301320723951
+      },
+      "20-30m": {
+        "tp": 20301,
+        "fp": 7187,
+        "fn": 1500,
+        "precision": 0.738540454016298,
+        "recall": 0.9311958167056557,
+        "f1": 0.8237537787335916
+      },
+      "30-40m": {
+        "tp": 23016,
+        "fp": 3760,
+        "fn": 2638,
+        "precision": 0.8595757394681804,
+        "recall": 0.8971700319638263,
+        "f1": 0.8779706275033378
+      }
+    },
+    "by_lateral_column": [
+      {
+        "lateral_m_centre": -19.0,
+        "tp": 2622,
+        "fp": 272,
+        "fn": 81,
+        "precision": 0.9060124395300622,
+        "recall": 0.9700332963374029,
+        "f1": 0.9369304984813293
+      },
+      {
+        "lateral_m_centre": -17.0,
+        "tp": 2843,
+        "fp": 349,
+        "fn": 85,
+        "precision": 0.8906641604010025,
+        "recall": 0.9709699453551912,
+        "f1": 0.9290849673202616
+      },
+      {
+        "lateral_m_centre": -15.0,
+        "tp": 3071,
+        "fp": 374,
+        "fn": 130,
+        "precision": 0.8914368650217707,
+        "recall": 0.9593876913464542,
+        "f1": 0.9241649112247968
+      },
+      {
+        "lateral_m_centre": -13.0,
+        "tp": 3275,
+        "fp": 454,
+        "fn": 133,
+        "precision": 0.8782515419683561,
+        "recall": 0.9609741784037559,
+        "f1": 0.9177525570968192
+      },
+      {
+        "lateral_m_centre": -11.0,
+        "tp": 3464,
+        "fp": 545,
+        "fn": 144,
+        "precision": 0.8640558742828636,
+        "recall": 0.9600886917960089,
+        "f1": 0.9095444400682683
+      },
+      {
+        "lateral_m_centre": -9.0,
+        "tp": 3631,
+        "fp": 707,
+        "fn": 144,
+        "precision": 0.8370216689718765,
+        "recall": 0.9618543046357616,
+        "f1": 0.8951066190065328
+      },
+      {
+        "lateral_m_centre": -7.0,
+        "tp": 3149,
+        "fp": 1152,
+        "fn": 331,
+        "precision": 0.7321553127179725,
+        "recall": 0.9048850574712644,
+        "f1": 0.8094075311656599
+      },
+      {
+        "lateral_m_centre": -5.0,
+        "tp": 2955,
+        "fp": 1373,
+        "fn": 321,
+        "precision": 0.6827634011090573,
+        "recall": 0.902014652014652,
+        "f1": 0.7772225144660704
+      },
+      {
+        "lateral_m_centre": -3.0,
+        "tp": 2708,
+        "fp": 1947,
+        "fn": 291,
+        "precision": 0.5817400644468314,
+        "recall": 0.9029676558852952,
+        "f1": 0.7076038672589496
+      },
+      {
+        "lateral_m_centre": -1.0,
+        "tp": 2593,
+        "fp": 2256,
+        "fn": 263,
+        "precision": 0.5347494328727572,
+        "recall": 0.9079131652661064,
+        "f1": 0.673069435431538
+      },
+      {
+        "lateral_m_centre": 1.0,
+        "tp": 2576,
+        "fp": 2174,
+        "fn": 259,
+        "precision": 0.5423157894736842,
+        "recall": 0.908641975308642,
+        "f1": 0.6792353328938695
+      },
+      {
+        "lateral_m_centre": 3.0,
+        "tp": 2300,
+        "fp": 2135,
+        "fn": 450,
+        "precision": 0.5186020293122886,
+        "recall": 0.8363636363636363,
+        "f1": 0.6402226861517049
+      },
+      {
+        "lateral_m_centre": 5.0,
+        "tp": 2226,
+        "fp": 1643,
+        "fn": 524,
+        "precision": 0.5753424657534246,
+        "recall": 0.8094545454545454,
+        "f1": 0.6726091554615501
+      },
+      {
+        "lateral_m_centre": 7.0,
+        "tp": 2159,
+        "fp": 1726,
+        "fn": 570,
+        "precision": 0.5557271557271557,
+        "recall": 0.7911322828875046,
+        "f1": 0.6528575748412458
+      },
+      {
+        "lateral_m_centre": 9.0,
+        "tp": 2546,
+        "fp": 1701,
+        "fn": 179,
+        "precision": 0.5994819872851425,
+        "recall": 0.9343119266055046,
+        "f1": 0.7303499713138268
+      },
+      {
+        "lateral_m_centre": 11.0,
+        "tp": 2540,
+        "fp": 1338,
+        "fn": 247,
+        "precision": 0.6549767921609077,
+        "recall": 0.9113742375313958,
+        "f1": 0.7621905476369093
+      },
+      {
+        "lateral_m_centre": 13.0,
+        "tp": 2702,
+        "fp": 902,
+        "fn": 231,
+        "precision": 0.7497225305216426,
+        "recall": 0.9212410501193318,
+        "f1": 0.826678904696344
+      },
+      {
+        "lateral_m_centre": 15.0,
+        "tp": 2566,
+        "fp": 756,
+        "fn": 228,
+        "precision": 0.7724262492474413,
+        "recall": 0.9183965640658555,
+        "f1": 0.8391105297580117
+      },
+      {
+        "lateral_m_centre": 17.0,
+        "tp": 2518,
+        "fp": 573,
+        "fn": 162,
+        "precision": 0.8146230993206082,
+        "recall": 0.9395522388059702,
+        "f1": 0.8726390573557442
+      },
+      {
+        "lateral_m_centre": 19.0,
+        "tp": 2389,
+        "fp": 443,
+        "fn": 139,
+        "precision": 0.8435734463276836,
+        "recall": 0.9450158227848101,
+        "f1": 0.8914179104477612
+      }
+    ],
+    "boundary_vs_interior": {
+      "definition": "interior = GT-OCCLUDED cell whose four 4-neighbours are all GT-OCCLUDED; boundary = every other GT-OCCLUDED cell",
+      "interior_recall": 0.920517984144383,
+      "interior_cells": 39229,
+      "boundary_recall": 0.9125560538116592,
+      "boundary_cells": 20516,
+      "fraction_of_all_FN_that_are_boundary_cells": 0.36522801302931596
+    }
+  },
+  "leakage_audit": {
+    "experiment_id": "SP-09-LEAKAGE-AUDIT",
+    "status": "EXECUTED",
+    "question": "does episode-disjoint splitting leave any near-identical crop on both sides of the train/val boundary?",
+    "method": "64-bit dHash of every crop at its recorded box; exact hash collisions and Hamming<=3 near-duplicates (found exactly via 4-band LSH) counted between the two sides",
+    "n_train_crops": 47638,
+    "n_val_crops": 16197,
+    "n_train_episodes": 136,
+    "n_val_episodes": 34,
+    "episode_overlap": [],
+    "episode_overlap_count": 0,
+    "exact_hash_collisions": {
+      "n_colliding_hashes": 42,
+      "n_val_crops_affected": 42,
+      "fraction_of_val": 0.0025930727912576402,
+      "by_class": {
+        "background": 6,
+        "vehicle": 36
+      }
+    },
+    "near_duplicates_hamming_le_3": {
+      "n_val_crops_affected": 259,
+      "fraction_of_val": 0.01599061554608878,
+      "n_hash_pairs": 457,
+      "by_class": {
+        "background": 83,
+        "vehicle": 175,
+        "pedestrian": 1
+      },
+      "val_class_distribution_for_reference": {
+        "background": 7132,
+        "vehicle": 7423,
+        "pedestrian": 1642
+      }
+    },
+    "context_within_episode_consecutive_similarity": {
+      "mean_fraction_of_adjacent_hashes_within_hamming_3": 0.025025446146216213,
+      "episodes_sampled": 20,
+      "note": "NOT a valid comparator and must not be quoted as one: this walks hashes in sorted VALUE order, not frame order, so it does not measure consecutive-frame similarity. Retained only to record what was computed."
+    }
+  },
+  "status": [
+    {
+      "experiment": "SP-01 Independent test set (classifier/tracking/intent)",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 62528,
+      "headline": "test accuracy 0.9680 vs validation 0.9679",
+      "file": "independent_test_metrics.json"
+    },
+    {
+      "experiment": "SP-02 Intent lead-time",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 1697,
+      "headline": "fused recall 0.696 at 1.0-1.5 s vs camera 0.306",
+      "file": "intent_vs_lead_time.json"
+    },
+    {
+      "experiment": "SP-03 Hidden-target diagnosis",
+      "status": "EXECUTED \u2014 DIAGNOSTIC",
+      "n": 202,
+      "headline": "202 -> 32 -> 15; first audit scored exactly the valid set",
+      "file": "hidden_target_diagnosis.json"
+    },
+    {
+      "experiment": "SP-04 Fault severity dose-response",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 24,
+      "headline": "monitor never flags any silent fault at any severity; clutter RAISES health",
+      "file": "fault_severity_metrics.json"
+    },
+    {
+      "experiment": "SP-05 Error distributions",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 845,
+      "headline": "fused v_lat median 0.341 vs camera 0.690, but p95 2.476 vs 2.125",
+      "file": "distributions.json"
+    },
+    {
+      "experiment": "SP-06 Effect sizes",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 845,
+      "headline": "fused-vs-camera v_lat dz=-0.145 (negligible); fused-vs-radar dz=-1.115 (large)",
+      "file": "effect_sizes.json"
+    },
+    {
+      "experiment": "SP-07 Breakdowns (range/scenario/visibility)",
+      "status": "EXECUTED \u2014 NEW",
+      "n": 845,
+      "headline": "Spearman(uncertainty,error)=0.297",
+      "file": "breakdowns.json"
+    },
+    {
+      "experiment": "SP-08 Occlusion spatial error analysis",
+      "status": "EXECUTED - NEW",
+      "n": 300,
+      "headline": "recall flat with range (0.94->0.90); precision collapses in the NEAR field (0.127 at 0-10 m); errors are not boundary artefacts",
+      "file": "spatial_errors.json"
+    },
+    {
+      "experiment": "SP-09 Pixel-level leakage audit",
+      "status": "EXECUTED - NEW",
+      "n": 16197,
+      "headline": "0 episode overlap; 1.60% of val crops have a Hamming<=3 twin in train, concentrated in vehicles (2.36%), pedestrians 0.06%",
+      "file": "leakage_audit.json"
+    },
+    {
+      "experiment": "Occlusion detector on independent test",
+      "status": "NOT SUPPORTED",
+      "n": null,
+      "headline": "the only unused collection has the corrupted occ_grid ground truth",
+      "file": "EXPERIMENT_GAP_MATRIX.md row 9"
+    },
+    {
+      "experiment": "Ablation D/F (occlusion conditioning, contradiction resolver)",
+      "status": "SHOULD NOT BE ADDED",
+      "n": null,
+      "headline": "PerceptionPipeline exposes no disable flags; would require rewriting the architecture",
+      "file": "EXPERIMENT_GAP_MATRIX.md rows 19,21"
+    },
+    {
+      "experiment": "Risk engine / TTC",
+      "status": "NOT SUPPORTED",
+      "n": null,
+      "headline": "re-checked: no risk/ttc/hazard key in any meta record",
+      "file": "results/audit/risk_metrics.json"
+    },
+    {
+      "experiment": "Fault detection delay / recovery",
+      "status": "PARTIALLY SUPPORTED",
+      "n": null,
+      "headline": "only radar_clutter_onset has an onset (frame 100); all other faults are on from frame 1",
+      "file": "EXPERIMENT_GAP_MATRIX.md row 25"
+    },
+    {
+      "experiment": "Classifier object-size analysis",
+      "status": "SKIPPED",
+      "n": null,
+      "headline": "saved raw predictions carry tier/visibility but not crop pixel dimensions; visibility used instead",
+      "file": "breakdowns.json -> classifier_size_analysis"
+    },
+    {
+      "experiment": "Multi-town / Town05",
+      "status": "SHOULD NOT BE ADDED",
+      "n": null,
+      "headline": "excluded by instruction; CARLA 0.10.0 ships one town",
+      "file": "\u2014"
+    }
+  ]
+}

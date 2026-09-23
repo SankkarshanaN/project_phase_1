@@ -1,0 +1,15 @@
+experiment,status,dataset,n,main_metric,file
+A: classification + uncertainty,EXECUTED,raw_v2 val (episode-disjoint),12552,"acc 0.9679, ECE 0.0622, err-AUROC 0.942",classification_metrics.json / uncertainty_metrics.json
+B: occlusion detector (held-out),EXECUTED,300 frames disjoint from tuning sample,120000,P 0.706 R 0.918 F1 0.798,occlusion_metrics.json
+C: camera/radar/fusion tracking,VERIFIED,"raw_v2 all episodes, paired",845,fused v_lat 0.672,tracking_metrics.json
+D: fusion ablation (camera/radar/fused),EXECUTED,raw_v2,845,see tracking + intent tables,tracking_metrics.json
+D2: literature-style baseline,EXECUTED,raw_v2,1836,baseline F1 0.778 vs proposed 0.885 (paired),scripts/evaluate_prediction.py --baseline (stdout)
+E: hidden-target prediction,PARTIALLY VERIFIED,raw_v2 occlusion events,15,particle vs EKF coast ADE; SAMPLE-LIMITED (n=15 events),hidden_prediction_metrics.json
+F: crossing intent,VERIFIED,raw_v2,3065,fused F1 0.855,intent_metrics.json
+G: risk engine,SKIPPED,-,,no risk/TTC/hazard ground truth exists in the dataset,risk_metrics.json
+H: fault injection,EXECUTED,"raw_v2, 24 episodes",10,6/10 detected,fault_metrics.json
+I: calibration/extrinsic perturbation,PARTIALLY VERIFIED,raw_v2,1,extrinsic_drift is the only perturbation implemented; no severity sweep exists,fault_metrics.json
+J: robustness / weather,PARTIALLY VERIFIED,raw_v2 (all clear-day),,photometric degradation of clear-day frames ONLY; CARLA weather API non-functional on this build,fault_metrics.json
+K: scenario generalisation,EXECUTED,"4 scenarios, single town",4,per-scenario occlusion performance,occlusion_metrics.json -> by_scenario
+L: runtime profiling,EXECUTED,"recorded frames, CARLA out of loop",40,52.5 ms serial,runtime_metrics.json
+M: multi-town generalisation,SKIPPED,-,,excluded by explicit instruction; CARLA 0.10.0 ships only Town10HD_Opt in any case,-

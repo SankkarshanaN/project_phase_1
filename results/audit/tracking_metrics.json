@@ -1,0 +1,184 @@
+{
+  "experiment_id": "AUDIT-C-TRACKING",
+  "detections": "ground-truth boxes (occluded actors withheld, filter coasts)",
+  "paired_observations": 845,
+  "episodes_contributing_to_paired": 44,
+  "episodes_replayed": 170,
+  "denominator": "paired observation = one (episode, frame, actor) tracked by ALL THREE modes AND moving laterally >= 0.3 m/s",
+  "bootstrap": {
+    "n_resamples": 2000,
+    "unit": "episode",
+    "seed": 0,
+    "why": "consecutive frames within an episode are correlated; frame-level CIs would be far too narrow"
+  },
+  "paired_metrics": {
+    "camera": {
+      "v_lat": {
+        "mae": 0.8186882158013516,
+        "rmse": 1.0384102839812344,
+        "median": 0.689585370082459,
+        "p95": 2.1249762041811255,
+        "n": 845
+      },
+      "v_fwd": {
+        "mae": 1.0480352973104725,
+        "rmse": 2.15639147380848,
+        "median": 0.4915096314748431,
+        "p95": 6.064915574292747,
+        "n": 845
+      },
+      "position": {
+        "mae": 2.3268949637669714,
+        "rmse": 2.646932352924267,
+        "median": 2.105094434225313,
+        "p95": 4.520234051918772,
+        "n": 845
+      },
+      "bootstrap_episode_level": {
+        "lat": {
+          "mean": 0.8205313431114765,
+          "std": 0.06997613751175678,
+          "ci95": [
+            0.6911205222964432,
+            0.9638045658019183
+          ]
+        },
+        "fwd": {
+          "mean": 1.0485398683382097,
+          "std": 0.2299425555221364,
+          "ci95": [
+            0.6474118184439316,
+            1.5342226721842667
+          ]
+        },
+        "pos": {
+          "mean": 2.339670876879483,
+          "std": 0.16729259770744548,
+          "ci95": [
+            2.0318406403405693,
+            2.673042585280698
+          ]
+        }
+      }
+    },
+    "radar": {
+      "v_lat": {
+        "mae": 1.6826205448638758,
+        "rmse": 1.7193089006483808,
+        "median": 1.8528424501419067,
+        "p95": 2.0,
+        "n": 845
+      },
+      "v_fwd": {
+        "mae": 0.15536517224110266,
+        "rmse": 0.23544173355606993,
+        "median": 0.10146479208527698,
+        "p95": 0.4526292342567387,
+        "n": 845
+      },
+      "position": {
+        "mae": 2.456512186673639,
+        "rmse": 2.6763456838511317,
+        "median": 2.2633868029649595,
+        "p95": 4.410413019225319,
+        "n": 845
+      },
+      "bootstrap_episode_level": {
+        "lat": {
+          "mean": 1.6827798780189658,
+          "std": 0.05450168053666046,
+          "ci95": [
+            1.5671046773030575,
+            1.7822436728365165
+          ]
+        },
+        "fwd": {
+          "mean": 0.155794251966194,
+          "std": 0.015579247124286287,
+          "ci95": [
+            0.12348376193994938,
+            0.1841284540024777
+          ]
+        },
+        "pos": {
+          "mean": 2.4550273726724936,
+          "std": 0.0864982239056395,
+          "ci95": [
+            2.276978964826683,
+            2.6248780510265033
+          ]
+        }
+      }
+    },
+    "fused": {
+      "v_lat": {
+        "mae": 0.6720891572772818,
+        "rmse": 1.101303532893903,
+        "median": 0.34124680483375114,
+        "p95": 2.476001622840965,
+        "n": 845
+      },
+      "v_fwd": {
+        "mae": 0.1986370220613754,
+        "rmse": 0.3136649691229198,
+        "median": 0.1343319551773187,
+        "p95": 0.651235244994013,
+        "n": 845
+      },
+      "position": {
+        "mae": 2.031980043902652,
+        "rmse": 2.2807508387669566,
+        "median": 1.7146776375135748,
+        "p95": 4.3799054098344525,
+        "n": 845
+      },
+      "bootstrap_episode_level": {
+        "lat": {
+          "mean": 0.6782516791600403,
+          "std": 0.11068955005032338,
+          "ci95": [
+            0.4885442962298442,
+            0.9103048381991414
+          ]
+        },
+        "fwd": {
+          "mean": 0.19994535700570912,
+          "std": 0.02266204776015212,
+          "ci95": [
+            0.15618224333536032,
+            0.24321925233947742
+          ]
+        },
+        "pos": {
+          "mean": 2.0342417052935917,
+          "std": 0.14033234020744512,
+          "ci95": [
+            1.772289381490834,
+            2.3382592563480977
+          ]
+        }
+      }
+    }
+  },
+  "unpaired_counts": {
+    "camera": {
+      "n_obs": 3665,
+      "n_moving": 2099,
+      "id_switches": 28,
+      "n_occluded_obs": 447
+    },
+    "radar": {
+      "n_obs": 2491,
+      "n_moving": 1455,
+      "id_switches": 19,
+      "n_occluded_obs": 133
+    },
+    "fused": {
+      "n_obs": 3065,
+      "n_moving": 1811,
+      "id_switches": 40,
+      "n_occluded_obs": 173
+    }
+  },
+  "unpaired_warning": "Unpaired means are NOT comparable across modes -- each mode tracks a different subset of actors. Counts are reported because coverage is a real property; the paired block is the comparison."
+}

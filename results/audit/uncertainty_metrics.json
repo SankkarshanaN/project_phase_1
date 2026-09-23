@@ -1,0 +1,142 @@
+{
+  "experiment_id": "AUDIT-A-UNCERTAINTY",
+  "n_crops": 12552,
+  "expected_calibration_error": 0.062217515353718875,
+  "ece_bins": 15,
+  "brier_score_multiclass": 0.06131462109323572,
+  "negative_log_likelihood": 0.1520088165998459,
+  "error_detection_auroc": 0.9424132366376385,
+  "area_under_risk_coverage": 0.0024573237207248327,
+  "reliability_bins": [
+    {
+      "lo": 0.0,
+      "hi": 0.06666666666666667,
+      "n": 0,
+      "acc": null,
+      "conf": null
+    },
+    {
+      "lo": 0.06666666666666667,
+      "hi": 0.13333333333333333,
+      "n": 0,
+      "acc": null,
+      "conf": null
+    },
+    {
+      "lo": 0.13333333333333333,
+      "hi": 0.2,
+      "n": 0,
+      "acc": null,
+      "conf": null
+    },
+    {
+      "lo": 0.2,
+      "hi": 0.26666666666666666,
+      "n": 0,
+      "acc": null,
+      "conf": null
+    },
+    {
+      "lo": 0.26666666666666666,
+      "hi": 0.3333333333333333,
+      "n": 0,
+      "acc": null,
+      "conf": null
+    },
+    {
+      "lo": 0.3333333333333333,
+      "hi": 0.4,
+      "n": 339,
+      "acc": 0.6076696165191741,
+      "conf": 0.3463952540472194
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.4666666666666667,
+      "n": 90,
+      "acc": 0.7,
+      "conf": 0.4313407709201177
+    },
+    {
+      "lo": 0.4666666666666667,
+      "hi": 0.5333333333333333,
+      "n": 71,
+      "acc": 0.6901408450704225,
+      "conf": 0.5021206845699901
+    },
+    {
+      "lo": 0.5333333333333333,
+      "hi": 0.6,
+      "n": 82,
+      "acc": 0.7560975609756098,
+      "conf": 0.5645321033349852
+    },
+    {
+      "lo": 0.6,
+      "hi": 0.6666666666666666,
+      "n": 95,
+      "acc": 0.6947368421052632,
+      "conf": 0.6337251845159029
+    },
+    {
+      "lo": 0.6666666666666666,
+      "hi": 0.7333333333333333,
+      "n": 156,
+      "acc": 0.8525641025641025,
+      "conf": 0.7026862322519987
+    },
+    {
+      "lo": 0.7333333333333333,
+      "hi": 0.8,
+      "n": 294,
+      "acc": 0.8843537414965986,
+      "conf": 0.7711248120077613
+    },
+    {
+      "lo": 0.8,
+      "hi": 0.8666666666666667,
+      "n": 583,
+      "acc": 0.9039451114922813,
+      "conf": 0.8379549146925401
+    },
+    {
+      "lo": 0.8666666666666667,
+      "hi": 0.9333333333333333,
+      "n": 2658,
+      "acc": 0.9785553047404063,
+      "conf": 0.9101831960086091
+    },
+    {
+      "lo": 0.9333333333333333,
+      "hi": 1.0,
+      "n": 8184,
+      "acc": 0.9997556207233627,
+      "conf": 0.9561982644122833
+    }
+  ],
+  "uncertainty_summary": {
+    "mean": 0.1396719217300415,
+    "median": 0.07976263016462326,
+    "p05": 0.04273807257413864,
+    "p95": 0.5053098201751709
+  },
+  "uncertainty_by_tier": {
+    "PARTIAL": {
+      "n": 1269,
+      "accuracy": 0.8857368006304176,
+      "mean_uncertainty": 0.21580198407173157,
+      "median_uncertainty": 0.10745225846767426,
+      "mean_confidence": 0.8531201481819153
+    },
+    "VISIBLE": {
+      "n": 5711,
+      "accuracy": 0.9707581859569252,
+      "mean_uncertainty": 0.13336224853992462,
+      "median_uncertainty": 0.07386907190084457,
+      "mean_confidence": 0.9101033210754395
+    }
+  },
+  "crops_without_tier_match": 5572,
+  "tier_coverage_note": "Background crops have no meta object and are unmatched by construction. Fully-OCCLUDED objects are absent from labels/ by dataset design, so this table cannot compare against fully-hidden crops -- only VISIBLE vs PARTIAL.",
+  "interpretation": "error_detection_auroc is the operative calibration claim: it is the probability that a randomly chosen misclassified crop carries higher uncertainty than a randomly chosen correct one. 0.5 would mean the uncertainty output carries no information about correctness."
+}

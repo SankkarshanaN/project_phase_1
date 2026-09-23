@@ -1,0 +1,205 @@
+{
+  "experiment_id": "AUDIT-H-FAULTS",
+  "status": "EXECUTED",
+  "source_log": "results\\audit\\logs\\fault_injection.log",
+  "command": "scripts/adversarial_test.py --data-dir data/raw_v2 --max-episodes 24",
+  "n_conditions_total": 11,
+  "n_faults_excluding_clean": 10,
+  "clean_baseline": {
+    "n_detections": 1113,
+    "pos_rmse_m": 2.152,
+    "v_lat_mae_ms": 0.882,
+    "hidden_rmse_m": 3.242,
+    "intent_auc": 0.86,
+    "camera_health": 0.98,
+    "radar_health_raw": "0.88",
+    "detected_by_health_monitor": null
+  },
+  "per_condition": {
+    "clean": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.152,
+      "v_lat_mae_ms": 0.882,
+      "hidden_rmse_m": 3.242,
+      "intent_auc": 0.86,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": null
+    },
+    "darkness": {
+      "n_detections": 64,
+      "pos_rmse_m": 2.579,
+      "v_lat_mae_ms": 0.368,
+      "hidden_rmse_m": 3.598,
+      "intent_auc": NaN,
+      "camera_health": 0.05,
+      "radar_health_raw": "0.89",
+      "detected_by_health_monitor": true
+    },
+    "fog": {
+      "n_detections": 1098,
+      "pos_rmse_m": 2.079,
+      "v_lat_mae_ms": 0.898,
+      "hidden_rmse_m": 3.242,
+      "intent_auc": 0.867,
+      "camera_health": 0.05,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": true
+    },
+    "blur": {
+      "n_detections": 1088,
+      "pos_rmse_m": 2.103,
+      "v_lat_mae_ms": 0.891,
+      "hidden_rmse_m": 3.242,
+      "intent_auc": 0.87,
+      "camera_health": 0.05,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": true
+    },
+    "noise": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.152,
+      "v_lat_mae_ms": 0.882,
+      "hidden_rmse_m": 3.242,
+      "intent_auc": 0.86,
+      "camera_health": 0.05,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": true
+    },
+    "lens_blocked": {
+      "n_detections": 813,
+      "pos_rmse_m": 2.257,
+      "v_lat_mae_ms": 0.671,
+      "hidden_rmse_m": 3.418,
+      "intent_auc": 0.861,
+      "camera_health": 0.39,
+      "radar_health_raw": "0.87",
+      "detected_by_health_monitor": true
+    },
+    "radar_dropout": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.267,
+      "v_lat_mae_ms": 0.656,
+      "hidden_rmse_m": 3.185,
+      "intent_auc": 0.919,
+      "camera_health": 0.97,
+      "radar_health_raw": "0.42",
+      "detected_by_health_monitor": true
+    },
+    "radar_clutter": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.286,
+      "v_lat_mae_ms": 1.04,
+      "hidden_rmse_m": 2.769,
+      "intent_auc": 0.879,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.97",
+      "detected_by_health_monitor": false
+    },
+    "radar_bias": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.247,
+      "v_lat_mae_ms": 1.045,
+      "hidden_rmse_m": 3.346,
+      "intent_auc": 0.852,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.88",
+      "detected_by_health_monitor": false
+    },
+    "extrinsic_drift": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.26,
+      "v_lat_mae_ms": 0.831,
+      "hidden_rmse_m": 3.957,
+      "intent_auc": 0.931,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.89",
+      "detected_by_health_monitor": false
+    },
+    "radar_clutter_onset": {
+      "n_detections": 1113,
+      "pos_rmse_m": 2.418,
+      "v_lat_mae_ms": 1.209,
+      "hidden_rmse_m": 3.139,
+      "intent_auc": 0.874,
+      "camera_health": 0.98,
+      "radar_health_raw": "0.96->0.91",
+      "detected_by_health_monitor": false
+    }
+  },
+  "degradation_vs_clean": {
+    "darkness": {
+      "delta_pos_rmse_m": 0.428,
+      "delta_intent_auc": null,
+      "detections_lost": 1049
+    },
+    "fog": {
+      "delta_pos_rmse_m": -0.073,
+      "delta_intent_auc": 0.007,
+      "detections_lost": 15
+    },
+    "blur": {
+      "delta_pos_rmse_m": -0.049,
+      "delta_intent_auc": 0.01,
+      "detections_lost": 25
+    },
+    "noise": {
+      "delta_pos_rmse_m": 0.0,
+      "delta_intent_auc": 0.0,
+      "detections_lost": 0
+    },
+    "lens_blocked": {
+      "delta_pos_rmse_m": 0.105,
+      "delta_intent_auc": 0.001,
+      "detections_lost": 300
+    },
+    "radar_dropout": {
+      "delta_pos_rmse_m": 0.116,
+      "delta_intent_auc": 0.059,
+      "detections_lost": 0
+    },
+    "radar_clutter": {
+      "delta_pos_rmse_m": 0.134,
+      "delta_intent_auc": 0.019,
+      "detections_lost": 0
+    },
+    "radar_bias": {
+      "delta_pos_rmse_m": 0.096,
+      "delta_intent_auc": -0.008,
+      "detections_lost": 0
+    },
+    "extrinsic_drift": {
+      "delta_pos_rmse_m": 0.108,
+      "delta_intent_auc": 0.071,
+      "detections_lost": 0
+    },
+    "radar_clutter_onset": {
+      "delta_pos_rmse_m": 0.266,
+      "delta_intent_auc": 0.014,
+      "detections_lost": 0
+    }
+  },
+  "detected_by_health_monitor": [
+    "blur",
+    "darkness",
+    "fog",
+    "lens_blocked",
+    "noise",
+    "radar_dropout"
+  ],
+  "not_detected_by_health_monitor": [
+    "extrinsic_drift",
+    "radar_bias",
+    "radar_clutter",
+    "radar_clutter_onset"
+  ],
+  "n_detected": 6,
+  "n_not_detected": 4,
+  "silent_failures_reported_by_script": [
+    "radar_clutter",
+    "radar_bias",
+    "radar_clutter_onset"
+  ],
+  "silent_failure_definition": "the script counts a fault as a SILENT FAILURE only if it measurably degraded something AND health stayed >= 0.6; a fault that changed nothing measurable is not counted as survived",
+  "denominator_warning": "The manuscript's '5 of 7 faults detected' uses a different denominator from this run, which injects 10 fault conditions (darkness, fog, blur, noise, lens_blocked, radar_dropout, radar_clutter, radar_bias, extrinsic_drift, radar_clutter_onset). Any claim of the form 'N of M' must state which M."
+}

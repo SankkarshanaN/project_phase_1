@@ -1,0 +1,89 @@
+{
+  "experiment_id": "AUDIT-STAT-PAIRED",
+  "n_paired_observations": 845,
+  "n_episodes_contributing": 44,
+  "n_bootstrap": 10000,
+  "resampling_unit": "episode",
+  "method": "paired difference of means over identical observations, with episodes resampled with replacement; CI from the 2.5/97.5 percentiles of the bootstrap difference distribution",
+  "why_not_marginal_cis": "Overlapping marginal CIs do not imply a non-significant difference for PAIRED data. The paired difference removes the between-episode variance that dominates each marginal CI, so it is the appropriate test here.",
+  "tests": {
+    "v_lat": {
+      "fused_vs_camera": {
+        "comparison": "fused minus camera",
+        "observed_difference": -0.14659905852406985,
+        "ci95": [
+          -0.342213966920046,
+          0.09117615230337096
+        ],
+        "excludes_zero": false,
+        "bootstrap_p_two_sided": 0.1994,
+        "better": "fused",
+        "interpretation": "difference is NOT distinguishable from zero at this sample size"
+      },
+      "fused_vs_radar": {
+        "comparison": "fused minus radar",
+        "observed_difference": -1.010531387586594,
+        "ci95": [
+          -1.203728914457348,
+          -0.765995291218572
+        ],
+        "excludes_zero": true,
+        "bootstrap_p_two_sided": 0.0,
+        "better": "fused",
+        "interpretation": "difference is statistically distinguishable from zero"
+      }
+    },
+    "v_fwd": {
+      "fused_vs_camera": {
+        "comparison": "fused minus camera",
+        "observed_difference": -0.8493982752490972,
+        "ci95": [
+          -1.327251835820456,
+          -0.4383800107575853
+        ],
+        "excludes_zero": true,
+        "bootstrap_p_two_sided": 0.0,
+        "better": "fused",
+        "interpretation": "difference is statistically distinguishable from zero"
+      },
+      "fused_vs_radar": {
+        "comparison": "fused minus radar",
+        "observed_difference": 0.04327184982027274,
+        "ci95": [
+          -0.005680205049119518,
+          0.09797938344693818
+        ],
+        "excludes_zero": false,
+        "bootstrap_p_two_sided": 0.0892,
+        "better": "radar",
+        "interpretation": "difference is NOT distinguishable from zero at this sample size"
+      }
+    },
+    "position": {
+      "fused_vs_camera": {
+        "comparison": "fused minus camera",
+        "observed_difference": -0.2949149198643193,
+        "ci95": [
+          -0.729336477509751,
+          0.11354974868617394
+        ],
+        "excludes_zero": false,
+        "bootstrap_p_two_sided": 0.1534,
+        "better": "fused",
+        "interpretation": "difference is NOT distinguishable from zero at this sample size"
+      },
+      "fused_vs_radar": {
+        "comparison": "fused minus radar",
+        "observed_difference": -0.4245321427709867,
+        "ci95": [
+          -0.674933669533007,
+          -0.1335082254934405
+        ],
+        "excludes_zero": true,
+        "bootstrap_p_two_sided": 0.0062,
+        "better": "fused",
+        "interpretation": "difference is statistically distinguishable from zero"
+      }
+    }
+  }
+}

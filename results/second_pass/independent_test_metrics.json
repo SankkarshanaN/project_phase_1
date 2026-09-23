@@ -1,0 +1,187 @@
+{
+  "experiment_id": "SP-01-INDEPENDENT-TEST",
+  "status": "EXECUTED",
+  "headline": "The first audit reported that no independent test split existed. A complete, episode-disjoint 189-episode collection does exist (data/raw_v2_stale_projection). Headline metrics are re-evaluated on it here with every threshold and checkpoint held fixed.",
+  "test_set": "data\\raw_v2_stale_projection",
+  "provenance_and_validity": {
+    "train_episodes": 170,
+    "test_episodes": 189,
+    "episode_id_overlap": 0,
+    "independent": true,
+    "occ_grid_occluded_fraction": {
+      "train_collection": 0.5113333333333333,
+      "test_collection": 0.17871666666666666,
+      "ratio": 2.861139606453418
+    },
+    "obj_tier_distribution": {
+      "train_collection": {
+        "0": 0.3205,
+        "1": 0.1116,
+        "2": 0.568
+      },
+      "test_collection": {
+        "0": 0.3406,
+        "1": 0.0976,
+        "2": 0.5618
+      },
+      "max_abs_drift": 0.020100000000000007
+    },
+    "mean_obj_visibility": {
+      "train_collection": 0.5876381645814098,
+      "test_collection": 0.5816095244455598
+    },
+    "conclusion": "occ_grid differs ~3x between collections while per-object tier distribution and mean visibility agree to within 0.020 / 0.006. Consistent with the documented BevProjector defect being confined to the BEV grid. The per-object pipeline is therefore treated as sound for this test set; the occlusion detector is NOT evaluated on it.",
+    "occlusion_detector_on_this_set": "REFUSED -- ground truth grid is the corrupted one"
+  },
+  "classifier": {
+    "test": {
+      "n_crops": 62528,
+      "n_test_episodes": 189,
+      "accuracy": 0.9679503582395087,
+      "macro_precision": 0.9598476464043065,
+      "macro_recall": 0.9645142162001155,
+      "macro_f1": 0.9621251532416782,
+      "weighted_f1": 0.9679775115871966,
+      "per_class": {
+        "vehicle": {
+          "precision": 0.9693501538995101,
+          "recall": 0.9590803808870206,
+          "f1": 0.9641879217783144,
+          "support": 23314
+        },
+        "pedestrian": {
+          "precision": 0.9337995337995338,
+          "recall": 0.9567709577262957,
+          "f1": 0.9451456883331366,
+          "support": 8374
+        },
+        "background": {
+          "precision": 0.9763932515138758,
+          "recall": 0.9776913099870298,
+          "f1": 0.9770418496135836,
+          "support": 30840
+        }
+      },
+      "confusion_matrix": [
+        [
+          22360,
+          381,
+          573
+        ],
+        [
+          206,
+          8012,
+          156
+        ],
+        [
+          501,
+          187,
+          30152
+        ]
+      ],
+      "expected_calibration_error": 0.06256012729023076,
+      "brier_score_multiclass": 0.05901444552687616,
+      "negative_log_likelihood": 0.1477997750043869,
+      "error_detection_auroc": 0.9459727527959084,
+      "mean_uncertainty": 0.13945549726486206
+    },
+    "validation_for_comparison": {
+      "accuracy": 0.96789356277884,
+      "macro_f1": 0.9652204469510993,
+      "weighted_f1": 0.9679133468502061,
+      "n_crops": 12552
+    },
+    "generalisation_gap_accuracy": -5.679546066872376e-05
+  },
+  "tracking": {
+    "test_paired_observations": 578,
+    "test_episodes_replayed": 189,
+    "test": {
+      "camera": {
+        "v_lat_mae": 0.8651946317531467,
+        "v_fwd_mae": 0.9763852879345161,
+        "position_mae": 2.279114782068657
+      },
+      "radar": {
+        "v_lat_mae": 1.598857821838666,
+        "v_fwd_mae": 0.16126100308209257,
+        "position_mae": 2.6608226264738235
+      },
+      "fused": {
+        "v_lat_mae": 0.7114731963017716,
+        "v_fwd_mae": 0.21727258176438838,
+        "position_mae": 2.275536248639288
+      }
+    },
+    "validation_for_comparison": {
+      "camera": {
+        "v_lat_mae": 0.8186882158013516,
+        "v_fwd_mae": 1.0480352973104725,
+        "position_mae": 2.3268949637669714
+      },
+      "radar": {
+        "v_lat_mae": 1.6826205448638758,
+        "v_fwd_mae": 0.15536517224110266,
+        "position_mae": 2.456512186673639
+      },
+      "fused": {
+        "v_lat_mae": 0.6720891572772818,
+        "v_fwd_mae": 0.1986370220613754,
+        "position_mae": 2.031980043902652
+      }
+    }
+  },
+  "intent": {
+    "test": {
+      "camera": {
+        "n": 3158,
+        "roc_auc": 0.880235357709471,
+        "precision": 0.9076048329779673,
+        "recall": 0.6928920238741183,
+        "f1": 0.7858461538461539,
+        "positive_rate": 0.5835972134262192
+      },
+      "radar": {
+        "n": 2248,
+        "roc_auc": 0.6480768250821107,
+        "precision": 0.9166666666666666,
+        "recall": 0.014166130070830651,
+        "f1": 0.027901077996195307,
+        "positive_rate": 0.6908362989323843
+      },
+      "fused": {
+        "n": 3185,
+        "roc_auc": 0.8673933731185358,
+        "precision": 0.8918309859154929,
+        "recall": 0.8335966298051606,
+        "f1": 0.8617310832879695,
+        "positive_rate": 0.5962323390894819
+      }
+    },
+    "validation_for_comparison": {
+      "camera": {
+        "n": 3665,
+        "roc_auc": 0.7887248486758126,
+        "f1": 0.7326500732064423
+      },
+      "radar": {
+        "n": 2491,
+        "roc_auc": 0.7425345985998406,
+        "f1": 0.03538743136058572
+      },
+      "fused": {
+        "n": 3065,
+        "roc_auc": 0.872895322671243,
+        "f1": 0.8554555680539934
+      }
+    }
+  },
+  "not_evaluated_here": {
+    "occlusion_detector": "REFUSED. This collection's occ_grid is the pre-fix, sign-error ground truth. Scoring the detector against it would be scoring against known-wrong labels."
+  },
+  "caveats": [
+    "This collection was archived, not discarded, precisely because its BEV grid was wrong. Its use here rests on the defect being confined to that grid, which is documented and re-verified empirically above -- but it is an inference, not a guarantee.",
+    "No hyperparameter, threshold or checkpoint was selected using this set.",
+    "The classifier's crops come from labels/, which excludes fully-occluded actors in this collection exactly as in the training one."
+  ]
+}
